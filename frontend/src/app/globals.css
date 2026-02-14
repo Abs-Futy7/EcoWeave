@@ -29,6 +29,55 @@
   font-style: normal;
 }
 
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/Bricolage_Grotesque/static/BricolageGrotesque-ExtraLight.ttf') format('truetype');
+  font-weight: 200;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/Bricolage_Grotesque/static/BricolageGrotesque-Light.ttf') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/Bricolage_Grotesque/static/BricolageGrotesque-Regular.ttf') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/Bricolage_Grotesque/static/BricolageGrotesque-Medium.ttf') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/Bricolage_Grotesque/static/BricolageGrotesque-SemiBold.ttf') format('truetype');
+  font-weight: 600;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/Bricolage_Grotesque/static/BricolageGrotesque-Bold.ttf') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+}
+
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  src: url('/Bricolage_Grotesque/static/BricolageGrotesque-ExtraBold.ttf') format('truetype');
+  font-weight: 800;
+  font-style: black;
+}
+
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
@@ -148,6 +197,6 @@
   }
   body {
     @apply bg-background text-foreground;
-    font-family: 'National 2', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+    font-family: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
 }
