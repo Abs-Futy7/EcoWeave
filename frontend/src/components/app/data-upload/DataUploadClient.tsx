@@ -9,6 +9,7 @@ import { seedBatches } from '@/lib/mock';
 import type { BatchRecord, ValidationFlag, ScoredBatch, Alert } from '@/lib/types';
 import Button from '@/components/ui/Button';
 import { Trash2, Save, ArrowRight } from 'lucide-react';
+import Topbar from '../Topbar';
 
 const STORAGE_KEY = 'ecoweave_dashboard_data';
 const ALERTS_STORAGE_KEY = 'ecoweave_dashboard_alerts';
@@ -78,57 +79,62 @@ export default function DataUploadClient() {
   };
 
   return (
-    <div className="h-full bg-background">
-      {/* Header with actions */}
-      <div className="bg-card border-b border-border px-6 py-4 sticky top-0 z-10">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-2xl font-bold">Data Upload</h1>
-            <p className="text-sm text-foreground/60 mt-1">Upload CSV data or load sample batches</p>
-          </div>
-          <div className="flex items-center gap-3">
-            {hasData && (
-              <>
-                <Button variant="outline" onClick={handleReset}>
-                  <Trash2 className="w-4 h-4 mr-2" />
-                  Clear Data
-                </Button>
-                <Button variant="primary" onClick={handleViewDashboard}>
-                  View Dashboard
-                  <ArrowRight className="w-4 h-4 ml-2" />
-                </Button>
-              </>
-            )}
+    <div className="min-h-full bg-background p-4">
+      <Topbar />
+      <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
+        {/* Header with actions */}
+        <div className="px-6 py-4 z-10">
+          <div className="flex items-center justify-between">
+            <div>
+              <h1 className="text-4xl font-medium tracking-tight">Data Upload</h1>
+              <p className="text-md text-foreground/60 mt-1">
+                Upload CSV data or load sample batches to analyze compliance metrics
+              </p>
+            </div>
+            <div className="flex items-center gap-3">
+              {hasData && (
+                <>
+                  <Button variant="outline" className="rounded-full" onClick={handleReset}>
+                    <Trash2 className="w-4 h-4 mr-2" />
+                    Clear Data
+                  </Button>
+                  <Button variant="primary" className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white" onClick={handleViewDashboard}>
+                    View Dashboard
+                    <ArrowRight className="w-4 h-4 ml-2" />
+                  </Button>
+                </>
+              )}
+            </div>
           </div>
         </div>
-      </div>
 
-      {/* Upload Section */}
-      <div className="p-6 space-y-6">
-        <UploadCsvCard 
-          onFileUpload={handleFileUpload}
-          onLoadSample={handleLoadSample}
-        />
+        {/* Upload Section */}
+        <div className="p-4 space-y-4">
+          <UploadCsvCard 
+            onFileUpload={handleFileUpload}
+            onLoadSample={handleLoadSample}
+          />
 
-        {/* Data Preview */}
-        {batches.length > 0 && (
-          <div className="bg-card border border-border rounded-lg p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div>
-                <h2 className="text-xl font-semibold text-foreground">Data Preview</h2>
-                <p className="text-sm text-foreground/60 mt-1">
-                  {batches.length} batch{batches.length !== 1 ? 'es' : ''} loaded • {flags.length} validation flag{flags.length !== 1 ? 's' : ''} detected
-                </p>
+          {/* Data Preview */}
+          {batches.length > 0 && (
+            <div className="bg-white rounded-xl p-6 shadow-sm/3">
+              <div className="flex items-center justify-between mb-4">
+                <div>
+                  <h2 className="text-2xl tracking-tight font-semibold text-gray-900">Data Preview</h2>
+                  <p className="text-sm text-foreground/60 mt-1">
+                    {batches.length} batch{batches.length !== 1 ? 'es' : ''} loaded • {flags.length} validation flag{flags.length !== 1 ? 's' : ''} detected
+                  </p>
+                </div>
+                <div className="flex items-center gap-2">
+                  <Save className="w-4 h-4 text-green-600" />
+                  <span className="text-sm text-green-600 font-medium">Auto-saved</span>
+                </div>
               </div>
-              <div className="flex items-center gap-2">
-                <Save className="w-4 h-4 text-green-600" />
-                <span className="text-sm text-green-600 font-medium">Auto-saved</span>
-              </div>
+              
+              <DataPreviewTable batches={scoredBatches} />
             </div>
-            
-            <DataPreviewTable batches={scoredBatches} />
-          </div>
-        )}
+          )}
+        </div>
       </div>
     </div>
   );

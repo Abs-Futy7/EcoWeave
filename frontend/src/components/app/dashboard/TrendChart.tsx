@@ -41,10 +41,10 @@ export default function TrendChart({ data, title, color = 'blue' }: TrendChartPr
   const areaPath = `${pathData} L ${points[points.length - 1].x} ${height - padding} L ${padding} ${height - padding} Z`;
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
+    <div className="bg-white rounded-xl p-6 shadow-sm/3">
+      <h3 className="text-2xl tracking-tight font-semibold text-gray-900 mb-3">{title}</h3>
       <div className="overflow-x-auto">
-        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" style={{ maxHeight: '240px' }}>
+        <svg viewBox={`0 0 ${width} ${height}`} className="w-full h-auto" style={{ maxHeight: '260px' }}>
           {/* Grid lines */}
           {[0, 1, 2, 3, 4].map((i) => {
             const y = padding + (i / 4) * chartHeight;
@@ -97,7 +97,7 @@ export default function TrendChart({ data, title, color = 'blue' }: TrendChartPr
               x={point.x}
               y={height - padding + 20}
               textAnchor="middle"
-              className="text-xs fill-current text-foreground/60"
+              className="text-sm fill-current text-foreground/60"
             >
               {point.label}
             </text>
@@ -113,7 +113,7 @@ export default function TrendChart({ data, title, color = 'blue' }: TrendChartPr
                 x={padding - 10}
                 y={y + 4}
                 textAnchor="end"
-                className="text-xs fill-current text-foreground/60"
+                className="text-sm fill-current text-foreground/60"
               >
                 {Math.round(value)}
               </text>

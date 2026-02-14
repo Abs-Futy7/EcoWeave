@@ -46,14 +46,14 @@ export default function AnalysisCard({
     : 0;
 
   return (
-    <div className="bg-card border border-border rounded-lg p-5 flex items-center justify-between hover:shadow-md transition-shadow">
+    <div className="bg-white rounded-xl shadow-sm/3 p-5 flex items-center justify-between hover:shadow-md transition-shadow">
       <div className="flex-1">
-        <h3 className="text-sm text-foreground/60 font-medium mb-1">{title}</h3>
-        <div className={`text-2xl font-bold ${colorClasses[color]} mb-1`}>
+        <h3 className="text-xl tracking-tight text-gray-900 font-medium mb-1">{title}</h3>
+        <div className={`text-4xl font-medium ${colorClasses[color]} mb-1`}>
           {value}
         </div>
         {percentage !== undefined && (
-          <div className="text-xs text-foreground/50">
+          <div className="text-sm text-[#004737]/80 font-medium">
             {percentage}% complete
           </div>
         )}
@@ -87,7 +87,7 @@ export default function AnalysisCard({
             />
           </svg>
           <div className="absolute inset-0 flex items-center justify-center">
-            <span className={`text-lg font-bold ${colorClasses[color]}`}>
+            <span className={`text-xl font-medium tracking-tight ${colorClasses[color]}`}>
               {Math.round(percentage)}%
             </span>
           </div>

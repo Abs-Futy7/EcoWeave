@@ -18,14 +18,14 @@ export default function BarChart({ data, title, horizontal = false }: BarChartPr
   const maxValue = Math.max(...data.map(d => d.value), 1);
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
+    <div className="bg-white rounded-xl p-6 shadow-sm/3">
+      <h3 className="text-2xl tracking-tight font-semibold text-gray-900 mb-4">{title}</h3>
       <div className="space-y-3">
         {data.map((item, index) => (
           <div key={index} className="space-y-1">
-            <div className="flex items-center justify-between text-sm">
-              <span className="text-foreground/70">{item.label}</span>
-              <span className="font-semibold text-foreground">{item.value}</span>
+            <div className="flex items-center justify-between text-md  font-medium">
+              <span className="text-[#004737]">{item.label}</span>
+              <span className="font-semibold text-foreground text-lg">{item.value}</span>
             </div>
             <div className="w-full bg-border/30 rounded-full h-2.5 overflow-hidden">
               <div

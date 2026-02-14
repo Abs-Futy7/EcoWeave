@@ -60,13 +60,13 @@ export default function ValidationPanel({ flags, totalBatches }: ValidationPanel
   const topIssues = getTopIssues();
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
-      <h3 className="text-lg font-semibold mb-4">Validation Summary</h3>
+    <div className="bg-white rounded-xl p-6 shadow-sm/3">
+      <h3 className="text-2xl tracking-tight font-semibold mb-4">Validation Summary</h3>
 
       {/* Data Health Score */}
       <div className="mb-6">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm font-medium">Data Health Score</span>
+          <span className="text-md font-medium">Data Health Score</span>
           <span className={`text-3xl font-bold ${getHealthColor(healthScore)}`}>
             {healthScore}
           </span>
@@ -100,11 +100,11 @@ export default function ValidationPanel({ flags, totalBatches }: ValidationPanel
 
       {/* Top Issues */}
       <div>
-        <h4 className="text-sm font-semibold mb-3">Top Issues Detected</h4>
+        <h4 className="text-md font-semibold mb-3">Top Issues Detected</h4>
         {topIssues.length > 0 ? (
           <ul className="space-y-2">
             {topIssues.map((issue, idx) => (
-              <li key={idx} className="flex items-start gap-2 text-sm">
+              <li key={idx} className="flex items-start gap-2 text-md">
                 <XCircle className="w-4 h-4 text-red-500 mt-0.5 flex-shrink-0" />
                 <span className="flex-1">
                   <span className="font-medium">{issue.type}</span>
@@ -114,7 +114,7 @@ export default function ValidationPanel({ flags, totalBatches }: ValidationPanel
             ))}
           </ul>
         ) : (
-          <div className="flex items-center gap-2 text-sm text-green-600">
+          <div className="flex items-center gap-2 text-md text-green-600">
             <CheckCircle className="w-4 h-4" />
             <span>No issues detected</span>
           </div>
@@ -122,9 +122,9 @@ export default function ValidationPanel({ flags, totalBatches }: ValidationPanel
       </div>
 
       {/* Status Summary */}
-      <div className="mt-6 pt-6 border-t border-border">
-        <div className="flex items-start gap-2 text-xs text-foreground/60">
-          <AlertCircle className="w-4 h-4 mt-0.5 flex-shrink-0" />
+      <div className="mt-3 pt-6 border-t border-border">
+        <div className="flex items-start gap-2 text-sm text-foreground/60">
+          <AlertCircle className="w-4 h-3 mt-0.5 flex-shrink-0" />
           <p>
             {flags.length === 0 
               ? 'All batches validated successfully. No compliance issues detected.'

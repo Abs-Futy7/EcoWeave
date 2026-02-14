@@ -109,20 +109,20 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
 
   if (notFound) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-full bg-background p-4">
         <Topbar />
-        <div className="p-6 max-w-4xl mx-auto">
-          <div className="bg-card border border-border rounded-lg p-12 text-center">
+        <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4 max-w-4xl mx-auto">
+          <div className="bg-white rounded-xl p-12 text-center shadow-sm/3">
             <AlertTriangle className="w-16 h-16 mx-auto mb-4 text-orange-600" />
-            <h2 className="text-2xl font-bold mb-2">Batch Not Found</h2>
+            <h2 className="text-2xl tracking-tight font-semibold text-gray-900 mb-2">Batch Not Found</h2>
             <p className="text-foreground/60 mb-6">
               The batch "{batchId}" could not be found. It may not exist or data may not be loaded.
             </p>
             <div className="flex gap-3 justify-center">
-              <Button variant="outline" onClick={() => router.push('/batches')}>
+              <Button variant="outline" className="rounded-full" onClick={() => router.push('/batches')}>
                 View All Batches
               </Button>
-              <Button variant="primary" onClick={() => router.push('/dashboard')}>
+              <Button variant="primary" className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white" onClick={() => router.push('/dashboard')}>
                 Go to Dashboard
               </Button>
             </div>
@@ -134,9 +134,9 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
 
   if (!batch) {
     return (
-      <div className="min-h-screen bg-background">
+      <div className="min-h-full bg-background p-4">
         <Topbar />
-        <div className="p-6 max-w-4xl mx-auto">
+        <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4 max-w-4xl mx-auto">
           <div className="text-center py-12">
             <p className="text-foreground/60">Loading batch details...</p>
           </div>
@@ -150,16 +150,17 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
   const etpCost = batch.etp_cost_bdt || 15000;
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-full bg-background p-4">
       <Topbar />
 
-      <div className="p-6 max-w-6xl mx-auto">
+      <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
+        <div className="px-6 py-4">
         {/* Header */}
         <div className="mb-6">
           <Button
             variant="outline"
             onClick={() => router.push('/batches')}
-            className="mb-4"
+            className="mb-4 rounded-full"
           >
             <ArrowLeft className="w-4 h-4 mr-2" />
             Back to Batches
@@ -167,8 +168,8 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
 
           <div className="flex items-start justify-between gap-4 mb-4">
             <div>
-              <h1 className="text-3xl font-bold mb-2">Batch {batch.batch_id}</h1>
-              <p className="text-foreground/70">{batch.shift_date} • {batch.shift_name}</p>
+              <h1 className="text-4xl font-medium tracking-tight mb-2">Batch {batch.batch_id}</h1>
+              <p className="text-md text-foreground/60">{batch.shift_date} • {batch.shift_name}</p>
             </div>
 
             <div className={`px-4 py-2 rounded-lg border-2 font-bold ${getRiskColor(riskScore)}`}>
@@ -182,7 +183,7 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
             <Button
               variant="primary"
               onClick={handleExportPDF}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white"
             >
               <Printer className="w-4 h-4" />
               Export Evidence PDF (Mock)
@@ -190,7 +191,7 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
             <Button
               variant="outline"
               onClick={handleOpenPrintPreview}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 rounded-full"
             >
               <ExternalLink className="w-4 h-4" />
               Open Print Preview
@@ -198,7 +199,7 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
             <Button
               variant="outline"
               onClick={handleCopyLink}
-              className="flex items-center gap-2"
+              className="flex items-center gap-2 rounded-full"
             >
               {copySuccess ? (
                 <>
@@ -219,8 +220,8 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
           {/* LEFT: Key Metrics */}
           <div className="lg:col-span-2 space-y-6">
             {/* Financial KPIs */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Financial Impact</h2>
+            <div className="bg-white rounded-xl p-6 shadow-sm/3">
+              <h2 className="text-2xl tracking-tight font-semibold text-gray-900 mb-4">Financial Impact</h2>
               <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
                 <div className="bg-red-50 border border-red-200 rounded-lg p-4">
                   <div className="text-xs text-red-600 mb-1 font-medium">Est. Loss if Bypassed</div>
@@ -247,8 +248,8 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
             </div>
 
             {/* Raw Data */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Batch Data</h2>
+            <div className="bg-white rounded-xl p-6 shadow-sm/3">
+              <h2 className="text-2xl tracking-tight font-semibold text-gray-900 mb-4">Batch Data</h2>
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <div className="text-xs text-foreground/60 mb-1">Batch ID</div>
@@ -313,8 +314,8 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
 
             {/* Alert Recommendation */}
             {alert && (
-              <div className="bg-accent/50 border border-border rounded-lg p-6">
-                <h2 className="text-xl font-semibold mb-3 flex items-center gap-2">
+              <div className="bg-white rounded-xl p-6 shadow-sm/3">
+                <h2 className="text-2xl tracking-tight font-semibold text-gray-900 mb-3 flex items-center gap-2">
                   <AlertTriangle className="w-5 h-5 text-orange-600" />
                   Recommended Action
                 </h2>
@@ -328,8 +329,8 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
 
           {/* RIGHT: Evidence Panel */}
           <div className="space-y-6">
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h2 className="text-xl font-semibold mb-4">Forensic Evidence</h2>
+            <div className="bg-white rounded-xl p-6 shadow-sm/3">
+              <h2 className="text-2xl tracking-tight font-semibold text-gray-900 mb-4">Forensic Evidence</h2>
               
               {batch.flags.length === 0 ? (
                 <div className="py-8 text-center">
@@ -361,8 +362,8 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
             </div>
 
             {/* Quick Stats */}
-            <div className="bg-card border border-border rounded-lg p-6">
-              <h3 className="font-semibold mb-3">Summary</h3>
+            <div className="bg-white rounded-xl p-6 shadow-sm/3">
+              <h3 className="text-xl tracking-tight font-semibold text-gray-900 mb-3">Summary</h3>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-foreground/60">Total Flags:</span>
@@ -383,6 +384,7 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
               </div>
             </div>
           </div>
+        </div>
         </div>
       </div>
     </div>

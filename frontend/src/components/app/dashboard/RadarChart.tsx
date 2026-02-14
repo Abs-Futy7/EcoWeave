@@ -43,8 +43,8 @@ export default function RadarChart({ data, title, color = '#10b981' }: RadarChar
   ).join(' ') + ' Z';
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
-      <h3 className="text-lg font-semibold text-foreground mb-4">{title}</h3>
+    <div className="bg-white rounded-lg p-6 shadow-sm/3">
+      <h3 className="text-2xl font-semibold text-gray-900 mb-4">{title}</h3>
       <div className="flex items-center justify-center">
         <svg width={size} height={size} className="overflow-visible">
           {/* Background circles */}
@@ -114,7 +114,7 @@ export default function RadarChart({ data, title, color = '#10b981' }: RadarChar
                 x={labelPoint.x}
                 y={labelPoint.y}
                 textAnchor="middle"
-                className="text-xs fill-current text-foreground/70 font-medium"
+                className="text-sm fill-current text-gray-500 font-medium"
               >
                 {item.label}
               </text>
@@ -124,7 +124,7 @@ export default function RadarChart({ data, title, color = '#10b981' }: RadarChar
       </div>
       
       {/* Legend */}
-      <div className="mt-4 grid grid-cols-2 gap-2 text-xs">
+      <div className="mt-4 grid grid-cols-2 gap-2 text-sm">
         {data.map((item, index) => (
           <div key={index} className="flex items-center justify-between">
             <span className="text-foreground/60">{item.label}</span>

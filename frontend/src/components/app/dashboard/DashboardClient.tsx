@@ -12,6 +12,7 @@ import BarChart from './BarChart';
 import RadarChart from './RadarChart';
 import Button from '@/components/ui/Button';
 import { Upload, AlertTriangle, TrendingUp, Activity, Database, RotateCcw } from 'lucide-react';
+import Topbar from '../Topbar';
 
 const STORAGE_KEY = 'ecoweave_dashboard_data';
 const ALERTS_STORAGE_KEY = 'ecoweave_dashboard_alerts';
@@ -136,8 +137,8 @@ export default function DashboardClient() {
     { label: 'Probable Bypass', value: flags.filter(f => f.type === 'probable_bypass').length, color: '#dc2626' },
     { label: 'Missing Fields', value: flags.filter(f => f.type === 'missing_field').length, color: '#ea580c' },
     { label: 'Triangulation', value: flags.filter(f => f.type === 'triangulation_mismatch').length, color: '#f59e0b' },
-    { label: 'Invoice Mismatch', value: flags.filter(f => f.type === 'invoice_mismatch').length, color: '#3b82f6' },
-    { label: 'Power Anomaly', value: flags.filter(f => f.type === 'power_anomaly').length, color: '#8b5cf6' },
+    { label: 'Invoice Mismatch', value: flags.filter(f => f.type === 'invoice_mismatch').length, color: '#14b8a6' },
+    { label: 'Power Anomaly', value: flags.filter(f => f.type === 'power_anomaly').length, color: '#10b981' },
   ].filter(d => d.value > 0) : [];
 
   // Radar data for compliance metrics
@@ -150,23 +151,26 @@ export default function DashboardClient() {
   ] : [];
 
   return (
-    <div className="h-full bg-background">
+    <div className="min-h-full bg-background p-4">
+      <Topbar/>
+      <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
       {/* Header with actions */}
-      <div className="bg-card border-b border-border px-6 py-4 sticky top-0 z-10">
+      <div className="px-6 py-4 z-10">
         <div className="flex items-center justify-between">
           <div>
-            <h1 className="text-2xl font-bold">Risk Analysis Dashboard</h1>
-            <p className="text-sm text-foreground/60 mt-1">
-              Real-time monitoring and compliance risk analysis
+            <h1 className="text-4xl font-medium tracking-tight">Risk Analysis Dashboard</h1>
+            <p className="text-md text-foreground/60 mt-1">
+              Real-time compliance monitoring and risk detection for textile manufacturing.
             </p>
+            
           </div>
           <div className="flex items-center gap-3">
-            <Button variant="outline" onClick={() => router.push('/data-upload')}>
+            <Button variant="primary" className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white" onClick={() => router.push('/data-upload')}>
               <Upload className="w-4 h-4 mr-2" />
               Upload Data
             </Button>
             {batches.length > 0 && (
-              <Button variant="outline" onClick={handleReset}>
+              <Button variant="outline" className='rounded-full' onClick={handleReset}>
                 Reset Demo
               </Button>
             )}
@@ -174,7 +178,7 @@ export default function DashboardClient() {
         </div>
       </div>
 
-      <div className="p-6 space-y-6">
+      <div className="p-4 space-y-4">
 
         {batches.length > 0 ? (
           <>
@@ -207,7 +211,7 @@ export default function DashboardClient() {
             </div>
 
             {/* Charts Row 1 */}
-            <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               <TrendChart
                 data={trendData}
                 title="Risk Score Trend"
@@ -220,7 +224,7 @@ export default function DashboardClient() {
             </div>
 
             {/* Charts Row 2 - Radar and Validation */}
-            <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               <div className="lg:col-span-1">
                 <RadarChart
                   data={radarData}
@@ -244,19 +248,20 @@ export default function DashboardClient() {
             />
           </>
         ) : (
-          <div className="bg-card border border-border rounded-lg p-12 text-center">
+          <div className="bg-white rounded-lg p-12 text-center shadow-sm/3">
             <Database className="w-16 h-16 mx-auto mb-4 text-foreground/30" />
             <h3 className="text-xl font-semibold mb-2">No Data Available</h3>
             <p className="text-foreground/60 mb-6">
               Upload your CSV file or load sample data to see visualizations, risk scores, and alerts.
             </p>
-            <Button variant="primary" onClick={() => router.push('/data-upload')}>
+            <Button variant="primary" className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white" onClick={() => router.push('/data-upload')}>
               <Upload className="w-4 h-4 mr-2" />
               Upload Data
             </Button>
           </div>
         )}
       </div>
+    </div>
     </div>
   );
 }
