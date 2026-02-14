@@ -1,59 +1,53 @@
-'use client';
+import React from 'react';
+import { ArrowRight } from 'lucide-react';
+import Image from 'next/image';
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import Link from 'next/link';
-import { Play } from 'lucide-react';
-import Button from '@/components/ui/Button';
-import RequestDemoModal from '@/components/layout/RequestDemoModal';
-
-export default function Hero() {
-  const [isModalOpen, setIsModalOpen] = useState(false);
-
+export default function Hero1() {
   return (
-    <>
-      <section className="min-h-screen bg-[#003F3A] flex items-center justify-center px-6 pt-24 pb-16">
-        <div className="max-w-6xl mx-auto text-center">
-          <motion.div
-            initial={{ opacity: 0, y: 20 }}
-            animate={{ opacity: 1, y: 0 }}
-            transition={{ duration: 0.8 }}
-            className="space-y-8"
-          >
-            {/* Main Headline */}
-            <h1 className="text-[#00D9CC] text-6xl md:text-7xl lg:text-8xl font-regular leading-[1.1] tracking-tighter">
-              Make Pollution<br />
-              Financially Irrational
+    <div className="relative w-full bg-white mt-16">
+      <div className="absolute h-full w-full bg-green-50/30 bg-[radial-gradient(ellipse_20%_80%_at_50%_-20%,rgba(34,197,94,0.15),rgba(255,255,255,0))]"></div>
+      <section className="relative z-10 mx-auto max-w-full">
+        
+
+        <div className="z-10 mx-auto max-w-7xl gap-12 px-4 py-28 text-gray-700 md:px-8">
+          <div className="mx-auto max-w-3xl space-y-5 text-center lg:leading-5">
+            <h1 className="font-geist group mx-auto w-fit rounded-3xl border-2 border-green-200 bg-linear-to-tr from-green-50 via-emerald-50 to-transparent px-5 py-2 text-sm text-green-700">
+              Textile Compliance Monitoring
+              <ArrowRight className="ml-2 inline h-4 w-4 duration-300 group-hover:translate-x-1" />
             </h1>
 
-            {/* Subheadline */}
-            <p className="text-white text-lg md:text-xl max-w-4xl mx-auto leading-relaxed">
-              The ultimate platform to predict high-risk discharge periods with forensic validation
-              <br />
-              and turn compliance into profit-protecting decisions for textile factories.
-            </p>
+            <h2 className="font-geist mx-auto bg-[linear-gradient(180deg,#047857_0%,rgba(16,185,129,0.7)_202.08%)] bg-clip-text text-4xl tracking-tighter text-transparent md:text-6xl font-bold">
+              Prevent ETP Bypass with{' '}
+              <span className="bg-linear-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+                AI-Powered Risk Scoring
+              </span>
+            </h2>
 
-            {/* CTA Buttons */}
-            <div className="flex flex-col sm:flex-row items-center justify-center gap-4 pt-8">
-              <button
-                onClick={() => setIsModalOpen(true)}
-                className="bg-white text-[#004737] px-10 py-4 rounded-full font-bold text-base hover:bg-gray-100 transition-all duration-300 shadow-lg hover:shadow-xl"
-              >
-                GET STARTED
-              </button>
-              
-              <Link href="/pricing">
-                <button className="border-2 border-white text-white px-10 py-4 rounded-full font-bold text-base hover:bg-white/10 transition-all duration-300 flex items-center gap-2">
-                  <Play className="w-4 h-4 fill-white" />
-                  HOW IT WORKS
-                </button>
-              </Link>
+            <p className="mx-auto max-w-2xl text-gray-600">
+              Real-time compliance monitoring using data triangulation and multi-factor validation to detect wastewater treatment bypasses before they happen. Protect your facility from fines, shutdowns, and export contract loss.
+            </p>
+            <div className="items-center justify-center space-y-3 gap-x-3 sm:flex sm:space-y-0">
+             
+                  <a
+                    href="/dashboard"
+                    className="group border-input inline-flex w-full items-center justify-center rounded-full border bg-green-50 px-10 py-4 text-center text-green-900 transition-colors hover:bg-green-50 sm:w-auto"
+                  >
+                    Get Started
+                  </a>
+                
             </div>
-          </motion.div>
+          </div>
+          <div className="mx-10 mt-20">
+            <Image
+              src="/dashboard.png"
+              width={1200}
+              height={800}
+              className="w-full rounded-lg border shadow-lg"
+              alt="EcoWeave Dashboard showing real-time compliance monitoring and risk analysis"
+            />
+          </div>
         </div>
       </section>
-
-      <RequestDemoModal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} />
-    </>
+    </div>
   );
 }

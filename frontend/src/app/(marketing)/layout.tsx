@@ -8,11 +8,11 @@ export default function MarketingLayout({
 }) {
   return (
     <>
-      <Navbar />
+      
       <main className="min-h-screen">
         {children}
       </main>
-      <Footer />
+
     </>
   );
 }
