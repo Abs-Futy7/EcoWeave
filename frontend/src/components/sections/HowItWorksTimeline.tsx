@@ -15,11 +15,11 @@ const stepIcons = [
 ];
 
 const stepImages = [
-  '/fileupload.png',
-  'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1460925895917-afdab827c52f?q=80&w=2015&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1551288049-bebda4e38f71?q=80&w=2070&auto=format&fit=crop',
-  'https://images.unsplash.com/photo-1543286386-713bdd548da4?q=80&w=2070&auto=format&fit=crop',
+  '/image.png',
+  '/image2.png',
+  '/image3.png',
+  '/image4.png',
+  '/image5.png',
 ];
 
 export default function HowItWorksTimeline() {
@@ -108,7 +108,7 @@ export default function HowItWorksTimeline() {
                   index === currentStep && (
                     <motion.div
                       key={index}
-                      className="absolute inset-0 overflow-hidden rounded-lg"
+                      className="absolute inset-0 overflow-hidden rounded-lg bg-green-950"
                       initial={{ y: 100, opacity: 0, rotateX: -20 }}
                       animate={{ y: 0, opacity: 1, rotateX: 0 }}
                       exit={{ y: -100, opacity: 0, rotateX: 20 }}

@@ -11,14 +11,14 @@ export default function Hero1() {
 
         <div className="z-10 mx-auto max-w-7xl gap-12 px-4 py-28 text-gray-700 md:px-8">
           <div className="mx-auto max-w-3xl space-y-5 text-center lg:leading-5">
-            <h1 className="font-geist group mx-auto w-fit rounded-3xl border-2 border-green-200 bg-linear-to-tr from-green-50 via-emerald-50 to-transparent px-5 py-2 text-sm text-green-700">
+            <h1 className="font-geist group mx-auto w-fit rounded-3xl border-2 border-green-200 bg-linear-to-tr from-green-50 via-emerald-50 to-transparent px-5 py-2 text-sm text-[#047857] tracking-wide font-medium inline-flex items-center">
               Textile Compliance Monitoring
               <ArrowRight className="ml-2 inline h-4 w-4 duration-300 group-hover:translate-x-1" />
             </h1>
 
             <h2 className="font-geist mx-auto bg-[linear-gradient(180deg,#047857_0%,rgba(16,185,129,0.7)_202.08%)] bg-clip-text text-4xl tracking-tighter text-transparent md:text-6xl font-bold">
               Prevent ETP Bypass with{' '}
-              <span className="bg-linear-to-r from-emerald-600 to-teal-500 bg-clip-text text-transparent">
+              <span className="bg-linear-to-r from-emerald-800 to-[#004737] bg-clip-text text-transparent">
                 AI-Powered Risk Scoring
               </span>
             </h2>
@@ -30,7 +30,7 @@ export default function Hero1() {
              
                   <a
                     href="/dashboard"
-                    className="group border-input inline-flex w-full items-center justify-center rounded-full border bg-green-50 px-10 py-4 text-center text-green-900 transition-colors hover:bg-green-50 sm:w-auto"
+                    className="group border-input inline-flex w-full items-center justify-center rounded-full border bg-[#262626] px-10 py-4 text-center text-white transition-colors hover:bg-green-50 sm:w-auto"
                   >
                     Get Started
                   </a>
