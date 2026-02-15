@@ -1,60 +1,222 @@
-import React from 'react';
-import { features } from '@/lib/content';
-
-const iconMap: { [key: string]: React.ReactNode } = {
-  chart: (
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
-    </svg>
-  ),
-  shield: (
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12l2 2 4-4m5.618-4.016A11.955 11.955 0 0112 2.944a11.955 11.955 0 01-8.618 3.04A12.02 12.02 0 003 9c0 5.591 3.824 10.29 9 11.622 5.176-1.332 9-6.03 9-11.622 0-1.042-.133-2.052-.382-3.016z" />
-    </svg>
-  ),
-  currency: (
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8c-1.657 0-3 .895-3 2s1.343 2 3 2 3 .895 3 2-1.343 2-3 2m0-8c1.11 0 2.08.402 2.599 1M12 8V7m0 1v8m0 0v1m0-1c-1.11 0-2.08-.402-2.599-1M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
-    </svg>
-  ),
-  bell: (
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 17h5l-1.405-1.405A2.032 2.032 0 0118 14.158V11a6.002 6.002 0 00-4-5.659V5a2 2 0 10-4 0v.341C7.67 6.165 6 8.388 6 11v3.159c0 .538-.214 1.055-.595 1.436L4 17h5m6 0v1a3 3 0 11-6 0v-1m6 0H9" />
-    </svg>
-  ),
-  document: (
-    <svg className="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-      <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
-    </svg>
-  ),
-};
+import React from "react";
+import { BentoGrid, BentoGridItem } from "@/components/ui/bento-grid";
+import {
+  BarChart3,
+  Shield,
+  DollarSign,
+  Bell,
+  FileCheck,
+  TrendingUp,
+} from "lucide-react";
 
 export default function FeaturesGrid() {
   return (
-    <section id="features" className="py-20 px-6 bg-card">
-      <div className="max-w-7xl mx-auto">
-        <div className="text-center mb-16">
-          <h2 className="text-4xl font-bold mb-4">Platform Features</h2>
-          <p className="text-lg text-foreground/70 max-w-2xl mx-auto">
-            Turn operational data into compliance intelligence with AI-powered risk scoring and forensic validation.
+    <section id="features" className="py-24 px-6 bg-[#faf8f5] relative overflow-hidden">
+      {/* Organic texture overlay */}
+      <div className="absolute inset-0 opacity-[0.025]" style={{
+        backgroundImage: `url("data:image/svg+xml,%3Csvg width='80' height='80' viewBox='0 0 80 80' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' fill-rule='evenodd'%3E%3Cg fill='%23004737' fill-opacity='1'%3E%3Cpath d='M50 50c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10s-10-4.477-10-10 4.477-10 10-10zM10 10c0-5.523 4.477-10 10-10s10 4.477 10 10-4.477 10-10 10c0 5.523-4.477 10-10 10S0 25.523 0 20s4.477-10 10-10zm10 8c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8zm40 40c4.418 0 8-3.582 8-8s-3.582-8-8-8-8 3.582-8 8 3.582 8 8 8z' /%3E%3C/g%3E%3C/g%3E%3C/svg%3E")`
+      }}></div>
+      
+      {/* Atmospheric gradient */}
+      <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[#004737]/[0.02] to-transparent"></div>
+      
+      <div className="max-w-7xl mx-auto relative z-10">
+        <div className="text-center mb-20">
+          <div className="inline-block mb-3 px-4 py-1.5 bg-[#004737]/5 border border-[#004737]/10 rounded-full">
+            <span className="text-[#004737] text-sm font-medium tracking-wider uppercase">Platform Features</span>
+          </div>
+          <h2 className="text-5xl font-bold mb-5 text-[#004737] tracking-tight" style={{ fontFamily: 'Georgia, serif' }}>
+            Turn Data Into Compliance Intelligence
+          </h2>
+          <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-[#004737]/40 to-transparent mx-auto mb-6"></div>
+          <p className="text-xl text-[#2d5f4f]/80 max-w-2xl mx-auto font-light leading-relaxed">
+            AI-powered risk scoring and forensic validation to prevent pollution and protect profits.
           </p>
         </div>
 
-        <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-8">
-          {features.map((feature, index) => (
-            <div
-              key={index}
-              className="p-6 bg-background rounded-xl border border-border hover:border-primary/50 transition-all duration-300 hover:shadow-lg group"
-            >
-              <div className="w-12 h-12 bg-primary/10 rounded-lg flex items-center justify-center mb-4 text-primary group-hover:bg-primary group-hover:text-primary-foreground transition-colors">
-                {iconMap[feature.icon]}
-              </div>
-              <h3 className="text-xl font-semibold mb-3">{feature.title}</h3>
-              <p className="text-foreground/70">{feature.description}</p>
-            </div>
+        <BentoGrid className="max-w-7xl mx-auto md:auto-rows-[22rem]">
+          {items.map((item, i) => (
+            <BentoGridItem
+              key={i}
+              title={item.title}
+              description={item.description}
+              header={item.header}
+              className={item.className}
+              icon={item.icon}
+            />
           ))}
-        </div>
+        </BentoGrid>
       </div>
     </section>
   );
 }
+
+const SkeletonOne = () => (
+  <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-[#e8f5f1] relative overflow-hidden p-6">
+    <div className="w-full h-full flex flex-col">
+      <div className="mb-4">
+        <div className="inline-block px-3 py-1 bg-white rounded-full text-xs text-[#004737]/60 font-medium mb-2">
+          Generated Output
+        </div>
+      </div>
+      <div className="bg-[#1a1a1a] rounded-lg p-4 flex-1 relative overflow-hidden">
+        <div className="space-y-1">
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className="flex gap-2">
+              <div className="h-2 bg-[#2d5f4f] rounded w-8"></div>
+              <div className="h-2 bg-[#e8f5f1]/20 rounded flex-1"></div>
+            </div>
+          ))}
+        </div>
+        <div className="absolute top-2 right-2 flex gap-2">
+          <div className="w-16 h-6 bg-white/10 rounded"></div>
+          <div className="w-20 h-6 bg-white/10 rounded"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const SkeletonTwo = () => (
+  <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-[#004737] relative overflow-hidden p-6">
+    <div className="w-full h-full flex items-center justify-center">
+      <div className="grid grid-cols-3 gap-6">
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-14 h-14 bg-[#4285f4] rounded-lg shadow-lg"></div>
+          <div className="flex flex-col gap-1 items-center">
+            <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+            <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+          </div>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-14 h-14 bg-gradient-to-br from-[#ea4335] via-[#fbbc05] to-[#34a853] rounded-lg shadow-lg"></div>
+          <div className="flex flex-col gap-1 items-center">
+            <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+            <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+          </div>
+        </div>
+        <div className="flex flex-col items-center gap-2">
+          <div className="w-14 h-14 bg-[#2b579a] rounded-lg shadow-lg"></div>
+          <div className="flex flex-col gap-1 items-center">
+            <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+            <div className="w-1 h-1 bg-white/40 rounded-full"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const SkeletonThree = () => (
+  <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-[#004737] relative overflow-hidden p-6">
+    <div className="w-full h-full flex items-center justify-center">
+      <div className="space-y-3 w-full max-w-[200px]">
+        <div className="bg-white rounded-lg p-3 flex items-center justify-between shadow-md">
+          <span className="text-xs text-[#004737] font-medium">batch-2401.csv</span>
+          <div className="w-6 h-6 bg-[#e8f5f1] rounded-full flex items-center justify-center">
+            <div className="w-3 h-3 text-[#004737]">✓</div>
+          </div>
+        </div>
+        <div className="bg-white rounded-lg p-3 flex items-center justify-between shadow-md">
+          <span className="text-xs text-[#004737] font-medium">etp-report.xlsx</span>
+          <div className="w-6 h-6 bg-[#e8f5f1] rounded-full flex items-center justify-center">
+            <div className="w-3 h-3 text-[#004737]">✓</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const SkeletonFour = () => (
+  <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-[#e8f5f1] relative overflow-hidden p-6">
+    <div className="w-full h-full flex items-center justify-center">
+      <div className="bg-white rounded-lg shadow-lg p-4 w-full max-w-[220px]">
+        <div className="text-xs text-[#004737]/60 font-medium mb-3">Team Members</div>
+        <div className="space-y-3">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-[#004737] to-[#2d5f4f] rounded-full"></div>
+              <div className="space-y-1">
+                <div className="h-2 bg-[#004737]/20 rounded w-16"></div>
+                <div className="h-1.5 bg-[#004737]/10 rounded w-12"></div>
+              </div>
+            </div>
+            <div className="px-2 py-1 bg-[#e8f5f1] rounded text-xs text-[#004737] font-medium">Active</div>
+          </div>
+          <div className="flex items-center justify-between">
+            <div className="flex items-center gap-2">
+              <div className="w-8 h-8 bg-gradient-to-br from-[#2d5f4f] to-[#004737] rounded-full"></div>
+              <div className="space-y-1">
+                <div className="h-2 bg-[#004737]/20 rounded w-16"></div>
+                <div className="h-1.5 bg-[#004737]/10 rounded w-12"></div>
+              </div>
+            </div>
+            <div className="px-2 py-1 bg-[#e8f5f1] rounded text-xs text-[#004737] font-medium">Active</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const SkeletonFive = () => (
+  <div className="flex flex-1 w-full h-full min-h-[6rem] rounded-xl bg-[#e8f5f1] relative overflow-hidden p-6">
+    <div className="w-full h-full flex flex-col items-center justify-center gap-6">
+      <div className="w-12 h-12 bg-[#004737] rounded-full flex items-center justify-center shadow-lg">
+        <TrendingUp className="w-6 h-6 text-white" />
+      </div>
+      <div className="text-xs text-[#004737]/60 font-medium">Data Processing</div>
+      <div className="grid grid-cols-3 gap-4 w-full max-w-[200px]">
+        <div className="w-12 h-12 bg-white rounded-lg shadow-md flex items-center justify-center">
+          <div className="w-6 h-6 bg-[#21759b] rounded"></div>
+        </div>
+        <div className="w-12 h-12 bg-white rounded-lg shadow-md flex items-center justify-center">
+          <div className="w-6 h-6 bg-[#0084ff] rounded-full"></div>
+        </div>
+        <div className="w-12 h-12 bg-white rounded-lg shadow-md flex items-center justify-center">
+          <div className="w-6 h-6 bg-[#ff7a59] rounded"></div>
+        </div>
+      </div>
+    </div>
+  </div>
+);
+
+const items = [
+  {
+    title: "Smart Data Processing",
+    description: "Transform raw production data into structured compliance reports with intelligent formatting and validation.",
+    header: <SkeletonOne />,
+    className: "md:col-span-2",
+    icon: <BarChart3 className="h-5 w-5" />,
+  },
+  {
+    title: "Multi-Platform Publishing",
+    description: "Export compliance reports to Google Sheets, Excel, or integrate with your existing workflow with one click.",
+    header: <SkeletonTwo />,
+    className: "md:col-span-1",
+    icon: <FileCheck className="h-5 w-5" />,
+  },
+  {
+    title: "AI Batch Optimization",
+    description: "Intelligent analysis of batch data to identify pollution patterns and optimize production schedules.",
+    header: <SkeletonThree />,
+    className: "md:col-span-1",
+    icon: <Shield className="h-5 w-5" />,
+  },
+  {
+    title: "Team Collaboration",
+    description: "Invite team members with role-based permissions for seamless compliance management across departments.",
+    header: <SkeletonFour />,
+    className: "md:col-span-2",
+    icon: <Bell className="h-5 w-5" />,
+  },
+  {
+    title: "Real-Time Integration",
+    description: "Connect with buyer portals, regulatory systems, and supply chain platforms for instant data sharing.",
+    header: <SkeletonFive />,
+    className: "md:col-span-1",
+    icon: <DollarSign className="h-5 w-5" />,
+  },
+];
+

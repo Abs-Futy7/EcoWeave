@@ -3,8 +3,8 @@ import { pricingTiers } from '@/lib/content';
 
 export default function Pricings() {
   return (
-    <section id="pricing" className="py-20 px-6 bg-white">
-      <div className="max-w-7xl mx-auto">
+    <section id="pricing" className="py-20 px-6">
+      <div className="max-w-5xl mx-auto">
         {/* Header */}
         <div className="text-center mb-16">
           <div className="inline-block mb-6">
@@ -21,14 +21,14 @@ export default function Pricings() {
         </div>
         
         {/* Pricing Cards Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mb-12">
+        <div className="grid md:grid-cols-3 gap-4 mb-12">
           {pricingTiers.map((tier, index) => (
             <div
               key={index}
-              className={`rounded-2xl p-8 relative transition-all ${
+              className={`rounded-2xl p-8 relative transition-all flex flex-col ${
                 tier.highlighted 
-                  ? 'bg-linear-to-br from-emerald-800 to-emerald-900 text-white shadow-2xl transform scale-105' 
-                  : 'bg-white border-2 border-gray-200 hover:border-green-300 hover:shadow-lg'
+                  ? 'bg-linear-to-br from-emerald-800 to-emerald-900 text-white shadow-xl transform' 
+                  : 'bg-[#F7F7F7] hover:shadow-lg shadow-sm/5'
               }`}
             >
               
@@ -52,12 +52,12 @@ export default function Pricings() {
               </div>
 
               {/* Tier Name */}
-              <h3 className={`text-2xl font-bold mb-2 ${tier.highlighted ? 'text-white' : 'text-gray-900'}`}>
-                {tier.name}
+              <h3 className={`text-3xl font-regular mb-2 ${tier.highlighted ? 'text-white' : 'text-gray-900'}`}>
+                {tier.name}{tier.highlighted && <span className="text-green-200 text-xl -mt-2"> (Recommended)</span>}
               </h3>
               
               {/* Description */}
-              <p className={`text-sm mb-6 ${tier.highlighted ? 'text-green-100' : 'text-gray-600'}`}>
+              <p className={`text-sm min-h-[4.5rem] border-b pb-6 mb-6 ${tier.highlighted ? 'text-green-100' : 'text-gray-600'}`}>
                 {tier.description}
               </p>
               
@@ -74,7 +74,7 @@ export default function Pricings() {
               </div>
               
               {/* Features List */}
-              <ul className="space-y-4 mb-8">
+              <ul className="space-y-4 mb-8 grow">
                 {tier.features.map((feature, idx) => (
                   <li key={idx} className="flex items-start gap-3">
                     <svg 
@@ -94,10 +94,10 @@ export default function Pricings() {
               
               {/* CTA Button */}
               <button
-                className={`w-full py-3.5 rounded-full font-semibold transition-all ${
+                className={`w-full py-3.5 rounded-full font-medium transition-all ${
                   tier.highlighted
                     ? 'bg-white text-emerald-800 hover:bg-green-50 shadow-lg'
-                    : 'bg-linear-to-r from-green-500 to-emerald-600 text-white hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg'
+                    : 'bg-linear-to-r from-green-800 to-emerald-700 text-white hover:from-green-600 hover:to-emerald-700 shadow-md hover:shadow-lg'
                 }`}
               >
                 {tier.cta}

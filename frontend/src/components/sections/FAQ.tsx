@@ -3,7 +3,7 @@ import { faqs } from '@/lib/content';
 
 export default function FAQ() {
   return (
-    <section id="faq" className="flex flex-col py-20 px-6 bg-card items-center justify-center">
+    <section id="faq" className="flex flex-col py-20 px-6 items-center justify-center">
           <div className="inline-block mb-10">
             <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-200">
               FAQ
@@ -22,7 +22,7 @@ export default function FAQ() {
           {faqs.map((faq, index) => (
             <details
               key={index}
-              className="group bg-background border-b border-border overflow-hidden"
+              className="group border-b border-border overflow-hidden"
             >
               <summary className="cursor-pointer px-6 py-4 font-semibold text-lg flex justify-between items-center hover:text-primary transition-colors">
                 {faq.question}
