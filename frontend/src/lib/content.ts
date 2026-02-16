@@ -86,8 +86,8 @@ export const beneficiaries = [
 
 export const pricingTiers = [
   {
-    name: "Pilot",
-    price: "$5",
+    name: "Basic",
+    price: "1500 BDT",
     description: "Perfect for testing EcoWeave in a single production line or facility.",
     features: [
       "Up to 1 production line",
@@ -98,12 +98,12 @@ export const pricingTiers = [
       "Email support",
       "3-month pilot setup",
     ],
-    cta: "Start Pilot",
+    cta: "Start Basic Plan",
     highlighted: false,
   },
   {
-    name: "Standard",
-    price: "$29",
+    name: "Pro",
+    price: "4000 BDT",
     description: "Comprehensive monitoring for mid-sized facilities with multiple production lines.",
     features: [
       "Up to 5 production lines",
@@ -118,8 +118,8 @@ export const pricingTiers = [
     highlighted: true,
   },
   {
-    name: "Enterprise",
-    price: "$99",
+    name: "Premium",
+    price: "6000 BDT",
     description: "Full-scale deployment across multiple facilities with advanced integrations.",
     features: [
       "Unlimited production lines",

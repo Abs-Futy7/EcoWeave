@@ -1,37 +1,77 @@
+'use client';
+
 import React from 'react';
 import { pricingTiers } from '@/lib/content';
+import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
+
+const headerVariants: Variants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+    },
+  },
+};
+
+const cardVariants: Variants = {
+  hidden: { opacity: 0, y: 30 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.7,
+    },
+  },
+};
 
 export default function Pricings() {
   return (
     <section id="pricing" className="py-20 px-6">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
-        <div className="text-center mb-16">
+        <motion.div
+          className="text-center mb-16"
+          variants={headerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+        >
           <div className="inline-block mb-6">
             <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-200">
               Flexible pricing plans
             </span>
           </div>
-          <h2 className="text-5xl font-bold text-gray-900 mb-4">
+          <motion.h2
+            variants={headerVariants}
+            className="text-5xl font-bold text-gray-900 mb-4"
+          >
             The perfect plan for any textile facility
-          </h2>
-          <p className="text-lg text-gray-600 max-w-2xl mx-auto">
+          </motion.h2>
+          <motion.p
+            variants={headerVariants}
+            className="text-lg text-gray-600 max-w-2xl mx-auto"
+          >
             Our plans are designed to streamline your compliance workflow. Choose from scalable pricing solutions that grow with your manufacturing needs.
-          </p>
-        </div>
-        
+          </motion.p>
+        </motion.div>
         {/* Pricing Cards Grid */}
         <div className="grid md:grid-cols-3 gap-4 mb-12">
           {pricingTiers.map((tier, index) => (
-            <div
+            <motion.div
               key={index}
               className={`rounded-2xl p-8 relative transition-all flex flex-col ${
                 tier.highlighted 
                   ? 'bg-linear-to-br from-emerald-800 to-emerald-900 text-white shadow-xl transform' 
                   : 'bg-[#F7F7F7] hover:shadow-lg shadow-sm/5'
               }`}
+              variants={cardVariants}
+              initial="hidden"
+              whileInView="visible"
+              viewport={{ once: true, amount: 0.2 }}
             >
-              
               {/* Icon */}
               <div className="mb-6">
                 {index === 0 && (
@@ -102,7 +142,7 @@ export default function Pricings() {
               >
                 {tier.cta}
               </button>
-            </div>
+            </motion.div>
           ))}
         </div>
 

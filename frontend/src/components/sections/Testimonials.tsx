@@ -1,4 +1,8 @@
-import { Testimonials } from "@/components/ui/testimonials"
+'use client';
+
+import { Testimonials } from "@/components/ui/testimonials";
+import { motion } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 
 const testimonials = [
   {
@@ -87,14 +91,30 @@ const testimonials = [
   }
 ];
 
+const headerVariants: Variants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: { duration: 0.7 },
+  },
+};
+
 export default function TestimonialsSection() {
   return (
-    <Testimonials 
-      testimonials={testimonials}
-      title="Trusted by Industry Leaders"
-      description="See what textile manufacturers and compliance officers are saying about EcoWeave."
-      maxDisplayed={6}
-    />
+    <motion.section
+      initial="hidden"
+      whileInView="visible"
+      viewport={{ once: true, amount: 0.3 }}
+      variants={headerVariants}
+    >
+      <Testimonials 
+        testimonials={testimonials}
+        title="Trusted by Industry Leaders"
+        description="See what textile manufacturers and compliance officers are saying about EcoWeave."
+        maxDisplayed={6}
+      />
+    </motion.section>
   )
 }
 
