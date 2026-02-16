@@ -51,16 +51,20 @@ export default function Navbar() {
 
           {/* Right Side - Desktop */}
           <div className='hidden lg:flex items-center gap-1'>
-            <Button variant='primary'className='text-white/80 hover:text-white text-lg font-medium flex items-center gap-1 rounded-full bg-transparent border-white/80 hover:border-white transition-all duration-300'>
-              Sign In 
-            </Button>
-            <Button
-            variant='primary'
-              onClick={() => setIsModalOpen(true)}
-              className="text-white hover:text-white text-lg font-medium flex items-center gap-1 rounded-lg border-white/80 hover:border-white transition-all duration-300 bg-[#004737] hover:bg-[#004737]/90"
-            >
-              Sign Up
-            </Button>
+            <Link href="/signin">
+              <Button variant='primary' className='text-white/80 hover:text-white text-lg font-medium flex items-center gap-1 rounded-full bg-transparent border-white/80 hover:border-white transition-all duration-300'>
+                Sign In
+              </Button>
+            </Link>
+            <Link href="/signup">
+              <Button
+                variant='primary'
+                className="text-white hover:text-white text-lg font-medium flex items-center gap-1 rounded-lg border-white/80 hover:border-white transition-all duration-300 bg-[#004737] hover:bg-[#004737]/90"
+              >
+                Sign Up
+              </Button>
+            </Link>
+            
           </div>
 
           {/* Mobile Menu Button */}
@@ -100,15 +104,17 @@ export default function Navbar() {
                   );
                 })}
                 <div className='flex flex-col gap-2 pt-3 border-t border-white/10'>
-                  <button
-                    onClick={() => {
-                      setIsMobileMenuOpen(false);
-                      setIsModalOpen(true);
-                    }}
-                    className="bg-white text-[#004737] px-6 py-3 rounded-full font-bold text-sm uppercase hover:bg-gray-100 transition-all duration-300 w-full"
-                  >
-                    Book a Demo
-                  </button>
+                  <Link href="/signin">
+                    <button className="bg-white text-[#004737] px-6 py-3 rounded-full font-bold text-sm uppercase hover:bg-gray-100 transition-all duration-300 w-full">
+                      Sign In
+                    </button>
+                  </Link>
+                  <Link href="/signup">
+                    <button className="bg-[#004737] text-white px-6 py-3 rounded-full font-bold text-sm uppercase hover:bg-[#004737]/90 transition-all duration-300 w-full">
+                      Sign Up
+                    </button>
+                  </Link>
+                  
                 </div>
               </div>
             </motion.div>

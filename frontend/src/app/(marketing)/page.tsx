@@ -1,15 +1,14 @@
 import type { Metadata } from 'next';
 import Hero from '@/components/sections/Hero';
-import FeaturesGrid from '@/components/sections/FeaturesGrid';
 import HowItWorksTimeline from '@/components/sections/HowItWorksTimeline';
 import FAQ from '@/components/sections/FAQ';
 import CTA from '@/components/sections/CTA';
-import { beneficiaries } from '@/lib/content';
 import Navbar from '@/components/layout/Navbar';
 import Pricings from '@/components/sections/Pricings';
 import Footer from '@/components/layout/Footer';
 import Testimonials from '@/components/sections/Testimonials';
 import Feature2 from '@/components/sections/Feature2';
+import { cn } from '@/lib/utils';
 
 export const metadata: Metadata = {
   title: 'EcoWeave - AI-Powered Textile Compliance Risk Platform',
@@ -18,16 +17,27 @@ export const metadata: Metadata = {
 
 export default function HomePage() {
   return (
-    <div className="min-h-screen bg-white max-w-8xl mx-auto">
-      <Navbar/>
-      <Hero />
-      <Feature2 />
-      <HowItWorksTimeline />
-      <Testimonials/>
-      <Pricings />
-      <FAQ />
-      <CTA />
-      <Footer/>
+    <div className="relative min-h-screen bg-white max-w-8xl mx-auto overflow-hidden">
+      {/* Dot Background */}
+      <div
+        className={cn(
+          "absolute inset-0",
+          "bg-[length:22px_22px]",
+          "bg-[radial-gradient(#e5e5e5_1px,transparent_1px)]",
+        )}
+      />
+      
+      <div className="relative z-10">
+        <Navbar/>
+        <Hero />
+        <Feature2 />
+        <HowItWorksTimeline />
+        <Testimonials/>
+        <Pricings />
+        <FAQ />
+        <CTA />
+        <Footer/>
+      </div>
     </div>
   );
 }

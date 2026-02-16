@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
+import type { Variants } from 'framer-motion';
 import { cn } from '@/lib/utils';
 import { FileSpreadsheet, Upload, SearchCheck, AlertTriangle, FileBarChart } from 'lucide-react';
 import { howItWorksSteps } from '@/lib/content';
@@ -22,6 +23,40 @@ const stepImages = [
   '/image5.png',
 ];
 
+const headerVariants: Variants = {
+  hidden: { opacity: 0, y: -20 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    transition: {
+      duration: 0.8,
+    },
+  },
+};
+
+const stepCardVariants: Variants = {
+  hidden: { opacity: 0, x: -20 },
+  visible: {
+    opacity: 1,
+    x: 0,
+    transition: {
+      duration: 0.7,
+    },
+  },
+};
+
+const imageVariants: Variants = {
+  hidden: { opacity: 0, y: 100, scale: 0.98 },
+  visible: {
+    opacity: 1,
+    y: 0,
+    scale: 1,
+    transition: {
+      duration: 0.7,
+    },
+  },
+};
+
 export default function HowItWorksTimeline() {
   const [currentStep, setCurrentStep] = useState(0);
   const [progress, setProgress] = useState(0);
@@ -41,24 +76,32 @@ export default function HowItWorksTimeline() {
 
   return (
     <section id="how-it-works" className="p-8 md:p-12 relative overflow-hidden">
-      
       <div className="mx-auto w-full max-w-6xl relative z-10">
-        <div className="relative mx-auto mb-12 max-w-2xl text-center">
+        <motion.div
+          className="relative mx-auto mb-12 max-w-2xl text-center"
+          variants={headerVariants}
+          initial="hidden"
+          whileInView="visible"
+          viewport={{ once: true, amount: 0.5 }}
+        >
           <div className="inline-block mb-3 px-4 py-1.5 bg-[#004737]/5 border border-[#004737]/10 rounded-full">
             <span className="text-[#004737] text-sm font-medium tracking-wider uppercase">The Process</span>
           </div>
           <div className="relative z-10">
-            <h2 className="text-5xl font-bold mb-5 text-[#004737] tracking-tight" >
+            <motion.h2
+              variants={headerVariants}
+              className="text-5xl font-bold mb-5 text-[#004737] tracking-tight"
+            >
               How It Works
-            </h2>
-            <p className="text-xl text-[#2d5f4f]/80 font-light leading-relaxed">
+            </motion.h2>
+            <motion.p
+              variants={headerVariants}
+              className="text-xl text-[#2d5f4f]/80 font-light leading-relaxed"
+            >
               From data ingestion to actionable alerts in 5 simple steps
-            </p>
+            </motion.p>
           </div>
-          
-        </div>
-        
-    
+        </motion.div>
 
         <div className="flex flex-col gap-6 md:grid md:grid-cols-2 md:gap-10 md:items-stretch">
           <div className="order-2 space-y-8 md:order-1">
@@ -66,12 +109,10 @@ export default function HowItWorksTimeline() {
               <motion.div
                 key={index}
                 className="flex items-center gap-6 md:gap-8"
-                initial={{ opacity: 0.3, x: -20 }}
-                animate={{
-                  opacity: index === currentStep ? 1 : 0.8,
-                  x: 0,
-                  scale: index === currentStep ? 1.05 : 1,
-                }}
+                variants={stepCardVariants}
+                initial="hidden"
+                whileInView="visible"
+                viewport={{ once: true, amount: 0.2 }}
                 transition={{ duration: 0.5 }}
               >
                 <motion.div
@@ -81,6 +122,8 @@ export default function HowItWorksTimeline() {
                       ? 'border-[#004737] bg-[#004737]/10 text-[#004737] scale-110 [box-shadow:0_0_15px_rgba(0,71,55,0.3)]'
                       : 'border-[#2d5f4f]/30 bg-[#e8f5f1]',
                   )}
+                  whileHover={{ scale: 1.15 }}
+                  transition={{ type: 'spring', stiffness: 200 }}
                 >
                   {stepIcons[index]}
                 </motion.div>
@@ -97,10 +140,15 @@ export default function HowItWorksTimeline() {
             ))}
           </div>
 
-          <div
+          <motion.div
             className={cn(
               'relative order-1 h-50 overflow-hidden rounded-xl border border-[#004737]/20 [box-shadow:0_5px_30px_-15px_rgba(0,71,55,0.3)] md:order-2 md:h-full',
             )}
+            variants={imageVariants}
+            initial="hidden"
+            whileInView="visible"
+            viewport={{ once: true, amount: 0.2 }}
+            transition={{ duration: 0.7 }}
           >
             <AnimatePresence mode="wait">
               {howItWorksSteps.map(
@@ -132,7 +180,7 @@ export default function HowItWorksTimeline() {
                   ),
               )}
             </AnimatePresence>
-          </div>
+          </motion.div>
         </div>
       </div>
     </section>
