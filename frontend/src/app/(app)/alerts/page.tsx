@@ -1,50 +1,111 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import type { Alert } from '@/lib/types';
+import type { Alert, ValidationFlag } from '@/lib/types';
+import {
+  getAlerts as fetchAlerts,
+  getAlertStats,
+  updateAlertStatus as patchAlert,
+  clearResolvedAlerts,
+  checkBackendHealth,
+} from '@/lib/api';
 import Button from '@/components/ui/Button';
-import { AlertTriangle, CheckCircle, Clock, ArrowLeft, Filter, FileText, Trash2 } from 'lucide-react';
+import { AlertTriangle, CheckCircle, Clock, ArrowLeft, Filter, FileText, Trash2, Loader2 } from 'lucide-react';
 import Topbar from '@/components/app/Topbar';
 
 const ALERTS_STORAGE_KEY = 'ecoweave_dashboard_alerts';
 
+interface AlertStats {
+  pending: number;
+  acknowledged: number;
+  resolved: number;
+  total: number;
+}
+
 export default function AlertsPage() {
   const router = useRouter();
   const [alerts, setAlerts] = useState<Alert[]>([]);
+  const [stats, setStats] = useState<AlertStats | null>(null);
   const [filterStatus, setFilterStatus] = useState<Alert['status'] | 'all'>('all');
   const [sortBy, setSortBy] = useState<'risk' | 'date'>('risk');
+  const [isLoading, setIsLoading] = useState(true);
+  const [useBackend, setUseBackend] = useState(true);
 
-  useEffect(() => {
+  const loadFromLocalStorage = useCallback(() => {
     const stored = localStorage.getItem(ALERTS_STORAGE_KEY);
     if (stored) {
       try {
-        const data = JSON.parse(stored);
-        setAlerts(data);
-      } catch (e) {
-        console.error('Failed to parse alerts:', e);
+        setAlerts(JSON.parse(stored));
+      } catch {
+        /* empty */
       }
     }
   }, []);
 
   useEffect(() => {
-    if (alerts.length > 0) {
-      localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(alerts));
-    }
-  }, [alerts]);
+    (async () => {
+      setIsLoading(true);
+      try {
+        const alive = await checkBackendHealth();
+        if (alive) {
+          setUseBackend(true);
+          const [alertRes, statsRes] = await Promise.all([fetchAlerts(), getAlertStats()]);
+          const mapped: Alert[] = (alertRes.alerts || []).map((a: Record<string, unknown>) => ({
+            id: String(a.id),
+            batch_id: a.batch_id,
+            risk_score: a.risk_score,
+            estimated_loss_bdt: a.estimated_loss_bdt ?? 0,
+            etp_cost_bdt: a.etp_cost_bdt ?? 0,
+            recommendation: a.recommendation ?? '',
+            flags: a.flags ?? [],
+            status: a.status,
+            createdAt: a.created_at,
+          }));
+          setAlerts(mapped);
+          setStats(statsRes);
+        } else {
+          setUseBackend(false);
+          loadFromLocalStorage();
+        }
+      } catch {
+        setUseBackend(false);
+        loadFromLocalStorage();
+      }
+      setIsLoading(false);
+    })();
+  }, [loadFromLocalStorage]);
 
-  const handleStatusChange = (alertId: string, newStatus: Alert['status']) => {
+  const handleStatusChange = async (alertId: string, newStatus: Alert['status']) => {
     setAlerts(prev =>
       prev.map(alert =>
         alert.id === alertId ? { ...alert, status: newStatus } : alert
       )
     );
+    if (useBackend) {
+      try {
+        await patchAlert(alertId, newStatus);
+      } catch {
+        /* keep optimistic update */
+      }
+    } else {
+      const updated = alerts.map(a => a.id === alertId ? { ...a, status: newStatus } : a);
+      localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(updated));
+    }
   };
 
-  const handleResetAlerts = () => {
-    if (confirm('Clear all alerts?')) {
-      localStorage.removeItem(ALERTS_STORAGE_KEY);
-      setAlerts([]);
+  const handleClearResolved = async () => {
+    if (useBackend) {
+      try {
+        await clearResolvedAlerts();
+        setAlerts(prev => prev.filter(a => a.status !== 'resolved'));
+      } catch {
+        /* empty */
+      }
+    } else {
+      const remaining = alerts.filter(a => a.status !== 'resolved');
+      setAlerts(remaining);
+      localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(remaining));
     }
   };
 
@@ -116,9 +177,9 @@ export default function AlertsPage() {
                 Back to Dashboard
               </Button>
               {alerts.length > 0 && (
-                <Button variant="outline" className="rounded-full" onClick={handleResetAlerts}>
+                <Button variant="outline" className="rounded-full" onClick={handleClearResolved}>
                   <Trash2 className="w-4 h-4 mr-2" />
-                  Clear Alerts
+                  Clear Resolved
                 </Button>
               )}
             </div>
@@ -127,28 +188,33 @@ export default function AlertsPage() {
 
         <div className="p-4 space-y-4">
 
-          {/* Stats Bar */}
+          {isLoading ? (
+            <div className="flex items-center justify-center min-h-[40vh]">
+              <Loader2 className="w-8 h-8 animate-spin text-green-700" />
+            </div>
+          ) : (
+          <>
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
             <div className="bg-white rounded-xl p-6 shadow-sm/3">
               <div className="text-sm text-foreground/60 mb-1">Total Alerts</div>
-              <div className="text-2xl font-bold">{alerts.length}</div>
+              <div className="text-2xl font-bold">{stats?.total ?? alerts.length}</div>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm/3">
               <div className="text-sm text-foreground/60 mb-1">Pending</div>
               <div className="text-2xl font-bold text-red-600">
-                {alerts.filter(a => a.status === 'pending').length}
+                {stats?.pending ?? alerts.filter(a => a.status === 'pending').length}
               </div>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm/3">
               <div className="text-sm text-foreground/60 mb-1">Acknowledged</div>
               <div className="text-2xl font-bold text-orange-600">
-                {alerts.filter(a => a.status === 'acknowledged').length}
+                {stats?.acknowledged ?? alerts.filter(a => a.status === 'acknowledged').length}
               </div>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm/3">
               <div className="text-sm text-foreground/60 mb-1">Resolved</div>
               <div className="text-2xl font-bold text-green-600">
-                {alerts.filter(a => a.status === 'resolved').length}
+                {stats?.resolved ?? alerts.filter(a => a.status === 'resolved').length}
               </div>
             </div>
           </div>
@@ -305,6 +371,8 @@ export default function AlertsPage() {
                 </div>
               ))}
             </div>
+          )}
+          </>
           )}
         </div>
       </div>

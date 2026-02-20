@@ -1,8 +1,10 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import { Mail, Lock, Eye, EyeOff, Loader2, Building2, User } from 'lucide-react';
 import Image from 'next/image';
+import { useAuth } from '@/lib/auth-context';
 
 export default function SignUpPage() {
   const [fullName, setFullName] = useState('');
@@ -15,8 +17,10 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string>('');
+  const { signup } = useAuth();
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setError('');
 
@@ -30,10 +34,14 @@ export default function SignUpPage() {
     }
 
     setLoading(true);
-    setTimeout(() => {
-      alert('Account created! (Demo mode)');
+    try {
+      await signup(fullName, email, password, orgName || undefined);
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Signup failed');
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
 
   return (

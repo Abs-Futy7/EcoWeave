@@ -1,51 +1,132 @@
 'use client';
 
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Topbar from '@/components/app/Topbar';
-import { ArrowLeft, Save, Bell, Lock, User, Database, Mail, Shield, Eye, EyeOff } from 'lucide-react';
+import { ArrowLeft, Save, Bell, Lock, User, Database, Mail, Shield, Loader2 } from 'lucide-react';
+import { useAuth } from '@/lib/auth-context';
+import {
+  updateProfile,
+  changePassword,
+  getSettings,
+  updateSettings,
+  checkBackendHealth,
+} from '@/lib/api';
 
 export default function SettingsPage() {
   const router = useRouter();
-  const [showPassword, setShowPassword] = useState(false);
-  const [settings, setSettings] = useState({
-    // Account Settings
-    name: 'John Doe',
-    email: 'john.doe@example.com',
-    company: 'EcoWeave Textiles',
-    
-    // Notification Settings
+  const { user, refreshUser } = useAuth();
+  const [isLoading, setIsLoading] = useState(true);
+  const [isSaving, setIsSaving] = useState(false);
+  const [saved, setSaved] = useState(false);
+  const [error, setError] = useState('');
+
+  const [profile, setProfile] = useState({
+    name: '',
+    email: '',
+    organization: '',
+  });
+
+  const [passwordForm, setPasswordForm] = useState({
+    old_password: '',
+    new_password: '',
+  });
+  const [passwordMsg, setPasswordMsg] = useState('');
+
+  const [prefs, setPrefs] = useState({
     emailNotifications: true,
     alertNotifications: true,
     weeklyReports: true,
-    
-    // Data Settings
-    autoSave: true,
     dataRetention: '90',
-    
-    // Security Settings
-    twoFactorAuth: false,
-    sessionTimeout: '30',
   });
 
-  const [saved, setSaved] = useState(false);
+  useEffect(() => {
+    if (user) {
+      setProfile({
+        name: user.full_name || '',
+        email: user.email || '',
+        organization: user.organization || '',
+      });
+    }
+  }, [user]);
 
-  const handleChange = (field: string, value: any) => {
-    setSettings(prev => ({ ...prev, [field]: value }));
+  useEffect(() => {
+    (async () => {
+      try {
+        const alive = await checkBackendHealth();
+        if (alive) {
+          const s = await getSettings();
+          setPrefs({
+            emailNotifications: s.email_alerts ?? true,
+            alertNotifications: s.alert_notifications ?? true,
+            weeklyReports: s.weekly_reports ?? true,
+            dataRetention: String(s.data_retention_days ?? 90),
+          });
+        }
+      } catch {
+        /* empty */
+      }
+      setIsLoading(false);
+    })();
+  }, []);
+
+  const handleSave = async () => {
+    setIsSaving(true);
+    setError('');
+    try {
+      await updateProfile({
+        full_name: profile.name,
+        email: profile.email,
+        organization: profile.organization,
+      });
+      await updateSettings({
+        email_alerts: prefs.emailNotifications,
+        alert_notifications: prefs.alertNotifications,
+        weekly_reports: prefs.weeklyReports,
+        data_retention_days: parseInt(prefs.dataRetention),
+      });
+      await refreshUser();
+      setSaved(true);
+      setTimeout(() => setSaved(false), 2000);
+    } catch (err) {
+      setError(err instanceof Error ? err.message : 'Failed to save');
+    } finally {
+      setIsSaving(false);
+    }
   };
 
-  const handleSave = () => {
-    // Save settings logic here
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
+  const handlePasswordChange = async () => {
+    setPasswordMsg('');
+    if (!passwordForm.old_password || !passwordForm.new_password) return;
+    try {
+      await changePassword(passwordForm.old_password, passwordForm.new_password);
+      setPasswordMsg('Password changed successfully');
+      setPasswordForm({ old_password: '', new_password: '' });
+    } catch (err) {
+      setPasswordMsg(err instanceof Error ? err.message : 'Failed to change password');
+    }
   };
+
+  const handlePrefChange = (field: string, value: unknown) => {
+    setPrefs(prev => ({ ...prev, [field]: value }));
+  };
+
+  if (isLoading) {
+    return (
+      <div className="min-h-full bg-background p-4">
+        <Topbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-green-700" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full bg-background p-4">
       <Topbar />
       <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
-        {/* Header */}
         <div className="px-6 py-4 z-10">
           <div className="flex items-center justify-between">
             <div>
@@ -59,209 +140,151 @@ export default function SettingsPage() {
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Dashboard
               </Button>
-              <Button 
-                variant="primary" 
-                className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white" 
+              <Button
+                variant="primary"
+                className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white"
                 onClick={handleSave}
+                disabled={isSaving}
               >
-                <Save className="w-4 h-4 mr-2" />
+                {isSaving ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Save className="w-4 h-4 mr-2" />}
                 {saved ? 'Saved!' : 'Save Changes'}
               </Button>
             </div>
           </div>
         </div>
 
+        {error && (
+          <div className="mx-4 mb-2 bg-red-50 text-red-700 rounded-lg p-4 text-sm">{error}</div>
+        )}
+
         <div className="p-4 space-y-4">
           <div className="grid grid-cols-1 lg:grid-cols-3 gap-4">
-            {/* Account Settings */}
             <div className="lg:col-span-2 space-y-4">
-              {/* Profile Information */}
               <div className="bg-white rounded-xl p-6 shadow-sm/3">
                 <div className="flex items-center gap-2 mb-4">
                   <User className="w-5 h-5 text-[#004737]" />
                   <h2 className="text-2xl tracking-tight font-semibold text-gray-900">Profile Information</h2>
                 </div>
-                
                 <div className="space-y-4">
                   <div>
                     <label className="text-sm font-medium text-foreground/80 mb-1 block">Full Name</label>
                     <input
                       type="text"
-                      value={settings.name}
-                      onChange={(e) => handleChange('name', e.target.value)}
+                      value={profile.name}
+                      onChange={(e) => setProfile(p => ({ ...p, name: e.target.value }))}
                       className="w-full px-4 py-2 border border-border rounded-lg bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
-
                   <div>
                     <label className="text-sm font-medium text-foreground/80 mb-1 block">Email Address</label>
                     <input
                       type="email"
-                      value={settings.email}
-                      onChange={(e) => handleChange('email', e.target.value)}
+                      value={profile.email}
+                      onChange={(e) => setProfile(p => ({ ...p, email: e.target.value }))}
                       className="w-full px-4 py-2 border border-border rounded-lg bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
-
                   <div>
-                    <label className="text-sm font-medium text-foreground/80 mb-1 block">Company Name</label>
+                    <label className="text-sm font-medium text-foreground/80 mb-1 block">Organization</label>
                     <input
                       type="text"
-                      value={settings.company}
-                      onChange={(e) => handleChange('company', e.target.value)}
+                      value={profile.organization}
+                      onChange={(e) => setProfile(p => ({ ...p, organization: e.target.value }))}
                       className="w-full px-4 py-2 border border-border rounded-lg bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-primary"
                     />
                   </div>
                 </div>
               </div>
 
-              {/* Notification Settings */}
               <div className="bg-white rounded-xl p-6 shadow-sm/3">
                 <div className="flex items-center gap-2 mb-4">
                   <Bell className="w-5 h-5 text-[#004737]" />
                   <h2 className="text-2xl tracking-tight font-semibold text-gray-900">Notifications</h2>
                 </div>
-                
                 <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">Email Notifications</div>
-                      <div className="text-sm text-foreground/60">Receive email updates about your batches</div>
+                  {[
+                    { key: 'emailNotifications', label: 'Email Notifications', desc: 'Receive email updates about your batches' },
+                    { key: 'alertNotifications', label: 'Alert Notifications', desc: 'Get notified about high-risk batches' },
+                    { key: 'weeklyReports', label: 'Weekly Reports', desc: 'Receive weekly compliance summary' },
+                  ].map(item => (
+                    <div key={item.key} className="flex items-center justify-between">
+                      <div>
+                        <div className="font-medium">{item.label}</div>
+                        <div className="text-sm text-foreground/60">{item.desc}</div>
+                      </div>
+                      <label className="relative inline-flex items-center cursor-pointer">
+                        <input
+                          type="checkbox"
+                          checked={prefs[item.key as keyof typeof prefs] as boolean}
+                          onChange={(e) => handlePrefChange(item.key, e.target.checked)}
+                          className="sr-only peer"
+                        />
+                        <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600" />
+                      </label>
                     </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.emailNotifications}
-                        onChange={(e) => handleChange('emailNotifications', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                    </label>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">Alert Notifications</div>
-                      <div className="text-sm text-foreground/60">Get notified about high-risk batches</div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.alertNotifications}
-                        onChange={(e) => handleChange('alertNotifications', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                    </label>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">Weekly Reports</div>
-                      <div className="text-sm text-foreground/60">Receive weekly compliance summary</div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.weeklyReports}
-                        onChange={(e) => handleChange('weeklyReports', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                    </label>
-                  </div>
+                  ))}
                 </div>
               </div>
 
-              {/* Data Management */}
               <div className="bg-white rounded-xl p-6 shadow-sm/3">
                 <div className="flex items-center gap-2 mb-4">
                   <Database className="w-5 h-5 text-[#004737]" />
                   <h2 className="text-2xl tracking-tight font-semibold text-gray-900">Data Management</h2>
                 </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium">Auto-Save Data</div>
-                      <div className="text-sm text-foreground/60">Automatically save changes to localStorage</div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.autoSave}
-                        onChange={(e) => handleChange('autoSave', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                    </label>
-                  </div>
-
-                  <div>
-                    <label className="text-sm font-medium text-foreground/80 mb-1 block">Data Retention Period (days)</label>
-                    <select
-                      value={settings.dataRetention}
-                      onChange={(e) => handleChange('dataRetention', e.target.value)}
-                      className="w-full px-4 py-2 border border-border rounded-lg bg-[#F7F7F7] cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="30">30 days</option>
-                      <option value="60">60 days</option>
-                      <option value="90">90 days</option>
-                      <option value="180">180 days</option>
-                      <option value="365">1 year</option>
-                    </select>
-                  </div>
+                <div>
+                  <label className="text-sm font-medium text-foreground/80 mb-1 block">Data Retention Period</label>
+                  <select
+                    value={prefs.dataRetention}
+                    onChange={(e) => handlePrefChange('dataRetention', e.target.value)}
+                    className="w-full px-4 py-2 border border-border rounded-lg bg-[#F7F7F7] cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                  >
+                    <option value="30">30 days</option>
+                    <option value="60">60 days</option>
+                    <option value="90">90 days</option>
+                    <option value="180">180 days</option>
+                    <option value="365">1 year</option>
+                  </select>
                 </div>
               </div>
             </div>
 
-            {/* Sidebar */}
             <div className="space-y-4">
-              {/* Security Settings */}
               <div className="bg-white rounded-xl p-6 shadow-sm/3">
                 <div className="flex items-center gap-2 mb-4">
                   <Shield className="w-5 h-5 text-[#004737]" />
-                  <h2 className="text-xl tracking-tight font-semibold text-gray-900">Security</h2>
+                  <h2 className="text-xl tracking-tight font-semibold text-gray-900">Change Password</h2>
                 </div>
-                
-                <div className="space-y-4">
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="font-medium text-sm">Two-Factor Auth</div>
-                      <div className="text-xs text-foreground/60">Extra security layer</div>
-                    </div>
-                    <label className="relative inline-flex items-center cursor-pointer">
-                      <input
-                        type="checkbox"
-                        checked={settings.twoFactorAuth}
-                        onChange={(e) => handleChange('twoFactorAuth', e.target.checked)}
-                        className="sr-only peer"
-                      />
-                      <div className="w-11 h-6 bg-gray-200 peer-focus:outline-none peer-focus:ring-4 peer-focus:ring-green-300 rounded-full peer peer-checked:after:translate-x-full peer-checked:after:border-white after:content-[''] after:absolute after:top-[2px] after:left-[2px] after:bg-white after:border-gray-300 after:border after:rounded-full after:h-5 after:w-5 after:transition-all peer-checked:bg-green-600"></div>
-                    </label>
-                  </div>
-
+                <div className="space-y-3">
                   <div>
-                    <label className="text-sm font-medium text-foreground/80 mb-1 block">Session Timeout (min)</label>
-                    <select
-                      value={settings.sessionTimeout}
-                      onChange={(e) => handleChange('sessionTimeout', e.target.value)}
-                      className="w-full px-4 py-2 border border-border rounded-lg bg-[#F7F7F7] cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
-                    >
-                      <option value="15">15 minutes</option>
-                      <option value="30">30 minutes</option>
-                      <option value="60">1 hour</option>
-                      <option value="120">2 hours</option>
-                    </select>
+                    <label className="text-sm font-medium text-foreground/80 mb-1 block">Current Password</label>
+                    <input
+                      type="password"
+                      value={passwordForm.old_password}
+                      onChange={(e) => setPasswordForm(p => ({ ...p, old_password: e.target.value }))}
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
                   </div>
-
-                  <Button variant="outline" className="w-full rounded-full">
-                    Change Password
+                  <div>
+                    <label className="text-sm font-medium text-foreground/80 mb-1 block">New Password</label>
+                    <input
+                      type="password"
+                      value={passwordForm.new_password}
+                      onChange={(e) => setPasswordForm(p => ({ ...p, new_password: e.target.value }))}
+                      className="w-full px-4 py-2 border border-border rounded-lg bg-[#F7F7F7] focus:outline-none focus:ring-2 focus:ring-primary"
+                    />
+                  </div>
+                  {passwordMsg && (
+                    <p className={`text-sm ${passwordMsg.includes('success') ? 'text-green-600' : 'text-red-600'}`}>
+                      {passwordMsg}
+                    </p>
+                  )}
+                  <Button variant="outline" className="w-full rounded-full" onClick={handlePasswordChange}>
+                    <Lock className="w-4 h-4 mr-2" />
+                    Update Password
                   </Button>
                 </div>
               </div>
 
-              {/* Quick Actions */}
               <div className="bg-white rounded-xl p-6 shadow-sm/3">
                 <h3 className="text-lg font-semibold mb-4">Quick Actions</h3>
                 <div className="space-y-2">
@@ -272,10 +295,6 @@ export default function SettingsPage() {
                   <Button variant="outline" className="w-full rounded-full text-left justify-start">
                     <Database className="w-4 h-4 mr-2" />
                     Export All Data
-                  </Button>
-                  <Button variant="outline" className="w-full rounded-full text-left justify-start text-red-600 border-red-200 hover:bg-red-50">
-                    <Lock className="w-4 h-4 mr-2" />
-                    Delete Account
                   </Button>
                 </div>
               </div>

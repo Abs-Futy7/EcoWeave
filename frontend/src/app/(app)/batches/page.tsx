@@ -1,47 +1,68 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useState, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import type { ScoredBatch, Alert } from '@/lib/types';
+import type { ScoredBatch } from '@/lib/types';
 import { scoreBatches, validateBatches } from '@/lib/risk';
-import { ArrowLeft, Search, AlertTriangle, ChevronRight } from 'lucide-react';
+import { getBatches, checkBackendHealth } from '@/lib/api';
+import { ArrowLeft, Search, AlertTriangle, ChevronRight, Loader2 } from 'lucide-react';
 import Button from '@/components/ui/Button';
 import Topbar from '@/components/app/Topbar';
 
 const STORAGE_KEY = 'ecoweave_dashboard_data';
-const ALERTS_STORAGE_KEY = 'ecoweave_dashboard_alerts';
 
 export default function BatchesPage() {
   const router = useRouter();
   const [batches, setBatches] = useState<ScoredBatch[]>([]);
-  const [alerts, setAlerts] = useState<Alert[]>([]);
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRisk, setFilterRisk] = useState<'all' | 'high' | 'medium' | 'low'>('all');
+  const [isLoading, setIsLoading] = useState(true);
 
-  useEffect(() => {
+  const loadFromLocalStorage = useCallback(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
-    const storedAlerts = localStorage.getItem(ALERTS_STORAGE_KEY);
-    
     if (stored) {
       try {
         const data = JSON.parse(stored);
         const flags = validateBatches(data.batches);
-        const scored = scoreBatches(data.batches, flags);
-        setBatches(scored);
-      } catch (e) {
-        console.error('Failed to parse stored data:', e);
-      }
-    }
-
-    if (storedAlerts) {
-      try {
-        const alertsData = JSON.parse(storedAlerts);
-        setAlerts(alertsData);
-      } catch (e) {
-        console.error('Failed to parse alerts:', e);
+        setBatches(scoreBatches(data.batches, flags));
+      } catch {
+        /* empty */
       }
     }
   }, []);
+
+  useEffect(() => {
+    (async () => {
+      setIsLoading(true);
+      try {
+        const alive = await checkBackendHealth();
+        if (alive) {
+          const res = await getBatches({ limit: 500 });
+          const mapped: ScoredBatch[] = (res.batches || []).map((b: Record<string, unknown>) => ({
+            batch_id: b.batch_id,
+            shift_date: b.shift_date,
+            shift_name: b.shift_name,
+            production_volume_kg: b.production_volume_kg,
+            chemical_usage_kg: b.chemical_usage_kg,
+            etp_runtime_min: b.etp_runtime_min,
+            electricity_kwh: b.electricity_kwh,
+            chemical_invoice_bdt: b.chemical_invoice_bdt,
+            etp_cost_bdt: b.etp_cost_bdt,
+            notes: b.notes,
+            risk_score: b.risk_score ?? 0,
+            estimated_loss_bdt: b.estimated_loss_bdt ?? 0,
+            flags: b.flags ?? [],
+          }));
+          setBatches(mapped);
+        } else {
+          loadFromLocalStorage();
+        }
+      } catch {
+        loadFromLocalStorage();
+      }
+      setIsLoading(false);
+    })();
+  }, [loadFromLocalStorage]);
 
   const filteredBatches = batches.filter(batch => {
     const matchesSearch = batch.batch_id.toLowerCase().includes(searchTerm.toLowerCase());
@@ -70,7 +91,6 @@ export default function BatchesPage() {
     <div className="min-h-full bg-background p-4">
       <Topbar />
       <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
-        {/* Header with actions */}
         <div className="px-6 py-4 z-10">
           <div className="flex items-center justify-between">
             <div>
@@ -86,6 +106,11 @@ export default function BatchesPage() {
           </div>
         </div>
 
+        {isLoading ? (
+          <div className="flex items-center justify-center min-h-[40vh]">
+            <Loader2 className="w-8 h-8 animate-spin text-green-700" />
+          </div>
+        ) : (
         <div className="p-4 space-y-4">
           {/* Stats */}
           <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
@@ -156,8 +181,6 @@ export default function BatchesPage() {
           ) : (
             <div className="space-y-3">
               {filteredBatches.map((batch) => {
-                const batchAlert = alerts.find(a => a.batch_id === batch.batch_id);
-                
                 return (
                     <button
                     key={batch.batch_id}
@@ -224,6 +247,7 @@ export default function BatchesPage() {
             </div>
           )}
         </div>
+        )}
       </div>
     </div>
   );
