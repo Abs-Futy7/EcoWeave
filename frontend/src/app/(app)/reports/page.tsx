@@ -4,75 +4,78 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import Button from '@/components/ui/Button';
 import Topbar from '@/components/app/Topbar';
-import { 
-  ArrowLeft, 
-  Download, 
-  FileText, 
-  TrendingUp, 
+import {
+  ArrowLeft,
+  Download,
+  FileText,
+  TrendingUp,
   Calendar,
   Filter,
   BarChart3,
   PieChart,
   Activity,
-  FileSpreadsheet
+  FileSpreadsheet,
+  Loader2,
 } from 'lucide-react';
-import type { ScoredBatch } from '@/lib/types';
-import { scoreBatches, validateBatches } from '@/lib/risk';
-
-const STORAGE_KEY = 'ecoweave_dashboard_data';
+import { generateReport, getBatchStats, checkBackendHealth } from '@/lib/api';
 
 export default function ReportsPage() {
   const router = useRouter();
-  const [batches, setBatches] = useState<ScoredBatch[]>([]);
   const [dateRange, setDateRange] = useState<'7' | '30' | '90' | 'all'>('30');
   const [reportType, setReportType] = useState<'summary' | 'detailed' | 'financial'>('summary');
+  const [isExporting, setIsExporting] = useState(false);
+  const [stats, setStats] = useState({
+    totalBatches: 0,
+    avgRiskScore: 0,
+    highRisk: 0,
+    totalLoss: 0,
+  });
 
   useEffect(() => {
-    const stored = localStorage.getItem(STORAGE_KEY);
-    if (stored) {
+    (async () => {
       try {
-        const data = JSON.parse(stored);
-        const flags = validateBatches(data.batches);
-        const scored = scoreBatches(data.batches, flags);
-        setBatches(scored);
-      } catch (e) {
-        console.error('Failed to parse stored data:', e);
+        const alive = await checkBackendHealth();
+        if (alive) {
+          const s = await getBatchStats();
+          setStats({
+            totalBatches: s.total_batches,
+            avgRiskScore: Math.round(s.avg_risk_score),
+            highRisk: s.high_risk_count,
+            totalLoss: s.total_estimated_loss,
+          });
+        }
+      } catch {
+        /* empty */
       }
-    }
+    })();
   }, []);
 
-  const handleExportReport = (format: 'pdf' | 'csv' | 'excel') => {
-    // Export logic here
-    alert(`Exporting ${reportType} report as ${format.toUpperCase()}...`);
+  const handleExportReport = async (format: 'pdf' | 'csv' | 'excel') => {
+    setIsExporting(true);
+    try {
+      const dateFrom = dateRange !== 'all'
+        ? new Date(Date.now() - parseInt(dateRange) * 86400000).toISOString().slice(0, 10)
+        : undefined;
+      const blob = await generateReport({
+        report_type: reportType,
+        format,
+        date_from: dateFrom,
+      });
+      const ext = format === 'excel' ? 'xlsx' : format;
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = `ecoweave_${reportType}_report.${ext}`;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      URL.revokeObjectURL(url);
+    } catch {
+      alert('Report generation failed. Make sure the backend is running.');
+    } finally {
+      setIsExporting(false);
+    }
   };
-
-  const calculateStats = () => {
-    const totalBatches = batches.length;
-    const highRisk = batches.filter(b => b.risk_score >= 75).length;
-    const mediumRisk = batches.filter(b => b.risk_score >= 50 && b.risk_score < 75).length;
-    const lowRisk = batches.filter(b => b.risk_score < 50).length;
-    const avgRiskScore = totalBatches > 0 
-      ? Math.round(batches.reduce((sum, b) => sum + b.risk_score, 0) / totalBatches)
-      : 0;
-    const totalFlags = batches.reduce((sum, b) => sum + b.flags.length, 0);
-    const totalProduction = batches.reduce((sum, b) => sum + (b.production_volume_kg || 0), 0);
-    const totalChemicalUsage = batches.reduce((sum, b) => sum + (b.chemical_usage_kg || 0), 0);
-    const totalETPRuntime = batches.reduce((sum, b) => sum + (b.etp_runtime_min || 0), 0);
-
-    return {
-      totalBatches,
-      highRisk,
-      mediumRisk,
-      lowRisk,
-      avgRiskScore,
-      totalFlags,
-      totalProduction,
-      totalChemicalUsage,
-      totalETPRuntime
-    };
-  };
-
-  const stats = calculateStats();
 
   const reportTemplates = [
     {
@@ -157,8 +160,8 @@ export default function ReportsPage() {
               <div className="text-2xl font-bold text-orange-600">{stats.avgRiskScore}</div>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm/3">
-              <div className="text-sm text-foreground/60 mb-1">Total Issues</div>
-              <div className="text-2xl font-bold text-red-600">{stats.totalFlags}</div>
+              <div className="text-sm text-foreground/60 mb-1">Est. Total Loss</div>
+              <div className="text-2xl font-bold text-red-600">৳{stats.totalLoss.toLocaleString()}</div>
             </div>
             <div className="bg-white rounded-xl p-6 shadow-sm/3">
               <div className="text-sm text-foreground/60 mb-1">High Risk</div>
@@ -210,15 +213,16 @@ export default function ReportsPage() {
                     variant="primary" 
                     className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white"
                     onClick={() => handleExportReport('pdf')}
+                    disabled={isExporting}
                   >
-                    <Download className="w-4 h-4 mr-2" />
+                    {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
                     Export as PDF
                   </Button>
-                  <Button variant="outline" className="rounded-full" onClick={() => handleExportReport('csv')}>
+                  <Button variant="outline" className="rounded-full" onClick={() => handleExportReport('csv')} disabled={isExporting}>
                     <FileSpreadsheet className="w-4 h-4 mr-2" />
                     Export as CSV
                   </Button>
-                  <Button variant="outline" className="rounded-full" onClick={() => handleExportReport('excel')}>
+                  <Button variant="outline" className="rounded-full" onClick={() => handleExportReport('excel')} disabled={isExporting}>
                     <FileSpreadsheet className="w-4 h-4 mr-2" />
                     Export as Excel
                   </Button>
@@ -307,26 +311,28 @@ export default function ReportsPage() {
 
             {/* Sidebar */}
             <div className="space-y-4">
-              {/* Data Overview */}
               <div className="bg-white rounded-xl p-6 shadow-sm/3">
                 <h3 className="text-xl tracking-tight font-semibold text-gray-900 mb-4">Data Overview</h3>
                 <div className="space-y-3">
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground/60">Total Production</span>
-                    <span className="font-semibold">{stats.totalProduction.toLocaleString()} kg</span>
+                    <span className="text-sm text-foreground/60">Total Batches</span>
+                    <span className="font-semibold">{stats.totalBatches}</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground/60">Chemical Usage</span>
-                    <span className="font-semibold">{stats.totalChemicalUsage.toLocaleString()} kg</span>
+                    <span className="text-sm text-foreground/60">Avg Risk</span>
+                    <span className="font-semibold">{stats.avgRiskScore}/100</span>
                   </div>
                   <div className="flex items-center justify-between">
-                    <span className="text-sm text-foreground/60">ETP Runtime</span>
-                    <span className="font-semibold">{stats.totalETPRuntime.toLocaleString()} min</span>
+                    <span className="text-sm text-foreground/60">High Risk</span>
+                    <span className="font-semibold text-red-600">{stats.highRisk}</span>
+                  </div>
+                  <div className="flex items-center justify-between">
+                    <span className="text-sm text-foreground/60">Est. Total Loss</span>
+                    <span className="font-semibold text-red-600">{stats.totalLoss.toLocaleString()} BDT</span>
                   </div>
                 </div>
               </div>
 
-              {/* Risk Breakdown */}
               <div className="bg-white rounded-xl p-6 shadow-sm/3">
                 <h3 className="text-xl tracking-tight font-semibold text-gray-900 mb-4">Risk Breakdown</h3>
                 <div className="space-y-3">
@@ -336,36 +342,10 @@ export default function ReportsPage() {
                       <span className="text-sm font-semibold text-red-600">{stats.highRisk}</span>
                     </div>
                     <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-red-600 h-2 rounded-full" 
+                      <div
+                        className="bg-red-600 h-2 rounded-full"
                         style={{ width: `${stats.totalBatches > 0 ? (stats.highRisk / stats.totalBatches) * 100 : 0}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-foreground/60">Medium Risk</span>
-                      <span className="text-sm font-semibold text-orange-600">{stats.mediumRisk}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-orange-600 h-2 rounded-full" 
-                        style={{ width: `${stats.totalBatches > 0 ? (stats.mediumRisk / stats.totalBatches) * 100 : 0}%` }}
-                      ></div>
-                    </div>
-                  </div>
-
-                  <div>
-                    <div className="flex items-center justify-between mb-1">
-                      <span className="text-sm text-foreground/60">Low Risk</span>
-                      <span className="text-sm font-semibold text-green-600">{stats.lowRisk}</span>
-                    </div>
-                    <div className="w-full bg-gray-200 rounded-full h-2">
-                      <div 
-                        className="bg-green-600 h-2 rounded-full" 
-                        style={{ width: `${stats.totalBatches > 0 ? (stats.lowRisk / stats.totalBatches) * 100 : 0}%` }}
-                      ></div>
+                      />
                     </div>
                   </div>
                 </div>

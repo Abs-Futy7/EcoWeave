@@ -1,9 +1,16 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import { useRouter } from 'next/navigation';
-import type { BatchRecord, ValidationFlag, Alert, ScoredBatch } from '@/lib/types';
+import type { ValidationFlag, Alert, ScoredBatch } from '@/lib/types';
 import { validateBatches, scoreBatches, generateAlerts } from '@/lib/risk';
+import {
+  getBatches,
+  getBatchStats,
+  getAlerts as fetchAlerts,
+  updateAlertStatus as patchAlert,
+  checkBackendHealth,
+} from '@/lib/api';
 import ValidationPanel from './ValidationPanel';
 import AlertsPanel from './AlertsPanel';
 import AnalysisCard from './AnalysisCard';
@@ -11,129 +18,172 @@ import TrendChart from './TrendChart';
 import BarChart from './BarChart';
 import RadarChart from './RadarChart';
 import Button from '@/components/ui/Button';
-import { Upload, AlertTriangle, TrendingUp, Activity, Database, RotateCcw } from 'lucide-react';
+import { Upload, Database, Loader2 } from 'lucide-react';
 import Topbar from '../Topbar';
 
 const STORAGE_KEY = 'ecoweave_dashboard_data';
 const ALERTS_STORAGE_KEY = 'ecoweave_dashboard_alerts';
 
+interface Stats {
+  total_batches: number;
+  avg_risk_score: number;
+  high_risk_count: number;
+  total_estimated_loss: number;
+  bypass_count: number;
+}
+
 export default function DashboardClient() {
   const router = useRouter();
-  const [batches, setBatches] = useState<BatchRecord[]>([]);
-  const [flags, setFlags] = useState<ValidationFlag[]>([]);
   const [scoredBatches, setScoredBatches] = useState<ScoredBatch[]>([]);
+  const [flags, setFlags] = useState<ValidationFlag[]>([]);
   const [alerts, setAlerts] = useState<Alert[]>([]);
-  const [isLoaded, setIsLoaded] = useState(false);
+  const [stats, setStats] = useState<Stats | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [useBackend, setUseBackend] = useState(true);
 
-  // Load from localStorage on mount
-  useEffect(() => {
+  const loadFromLocalStorage = useCallback(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     const storedAlerts = localStorage.getItem(ALERTS_STORAGE_KEY);
-    
     if (stored) {
       try {
         const data = JSON.parse(stored);
-        processBatches(data.batches);
-        
+        const batches = data.batches || [];
+        const newFlags = validateBatches(batches);
+        setFlags(newFlags);
+        const scored = scoreBatches(batches, newFlags);
+        setScoredBatches(scored);
         if (storedAlerts) {
-          try {
-            const alertsData = JSON.parse(storedAlerts);
-            setAlerts(alertsData);
-          } catch (e) {
-            console.error('Failed to parse stored alerts:', e);
-          }
+          setAlerts(JSON.parse(storedAlerts));
+        } else {
+          setAlerts(generateAlerts(batches, newFlags));
         }
-      } catch (e) {
-        console.error('Failed to parse stored data:', e);
+      } catch {
+        /* empty */
       }
     }
-    
-    setIsLoaded(true);
   }, []);
 
-  // Persist to localStorage whenever data changes
-  useEffect(() => {
-    if (isLoaded && batches.length > 0) {
-      localStorage.setItem(STORAGE_KEY, JSON.stringify({ batches }));
-    }
-  }, [batches, isLoaded]);
+  const loadFromBackend = useCallback(async () => {
+    const [batchRes, statsRes, alertRes] = await Promise.all([
+      getBatches({ limit: 500 }),
+      getBatchStats(),
+      fetchAlerts(),
+    ]);
+
+    const remoteBatches: ScoredBatch[] = (batchRes.batches || []).map((b: Record<string, unknown>) => ({
+      batch_id: b.batch_id,
+      shift_date: b.shift_date,
+      shift_name: b.shift_name,
+      production_volume_kg: b.production_volume_kg,
+      chemical_usage_kg: b.chemical_usage_kg,
+      etp_runtime_min: b.etp_runtime_min,
+      electricity_kwh: b.electricity_kwh,
+      chemical_invoice_bdt: b.chemical_invoice_bdt,
+      etp_cost_bdt: b.etp_cost_bdt,
+      notes: b.notes,
+      risk_score: b.risk_score ?? 0,
+      estimated_loss_bdt: b.estimated_loss_bdt ?? 0,
+      flags: b.flags ?? [],
+    }));
+
+    const remoteAlerts: Alert[] = (alertRes.alerts || []).map((a: Record<string, unknown>) => ({
+      id: String(a.id),
+      batch_id: a.batch_id,
+      risk_score: a.risk_score,
+      estimated_loss_bdt: a.estimated_loss_bdt ?? 0,
+      etp_cost_bdt: a.etp_cost_bdt ?? 0,
+      recommendation: a.recommendation ?? '',
+      flags: a.flags ?? [],
+      status: a.status,
+      createdAt: a.created_at,
+    }));
+
+    const allFlags: ValidationFlag[] = remoteBatches.flatMap(b => (b.flags || []) as ValidationFlag[]);
+
+    setScoredBatches(remoteBatches);
+    setFlags(allFlags);
+    setAlerts(remoteAlerts);
+    setStats(statsRes);
+  }, []);
 
   useEffect(() => {
-    if (isLoaded && alerts.length > 0) {
-      localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(alerts));
-    }
-  }, [alerts, isLoaded]);
+    (async () => {
+      setIsLoading(true);
+      try {
+        const alive = await checkBackendHealth();
+        if (alive) {
+          await loadFromBackend();
+          setUseBackend(true);
+        } else {
+          loadFromLocalStorage();
+          setUseBackend(false);
+        }
+      } catch {
+        loadFromLocalStorage();
+        setUseBackend(false);
+      }
+      setIsLoading(false);
+    })();
+  }, [loadFromBackend, loadFromLocalStorage]);
 
-  const processBatches = (newBatches: BatchRecord[]) => {
-    setBatches(newBatches);
-    const newFlags = validateBatches(newBatches);
-    setFlags(newFlags);
-    const scored = scoreBatches(newBatches, newFlags);
-    setScoredBatches(scored);
-    
-    // Generate new alerts, preserving status of existing alerts for same batch_id
-    const newAlerts = generateAlerts(newBatches, newFlags);
-    
-    setAlerts(prevAlerts => {
-      const statusMap = new Map(
-        prevAlerts.map(a => [a.batch_id, a.status])
-      );
-      
-      return newAlerts.map(alert => ({
-        ...alert,
-        status: statusMap.get(alert.batch_id) || alert.status,
-      }));
-    });
-  };
-
-  const handleReset = () => {
-    if (confirm('Are you sure you want to reset all data? This cannot be undone.')) {
-      localStorage.removeItem(STORAGE_KEY);
-      localStorage.removeItem(ALERTS_STORAGE_KEY);
-      setBatches([]);
-      setFlags([]);
-      setScoredBatches([]);
-      setAlerts([]);
-    }
-  };
-
-  const handleAlertStatusChange = (alertId: string, newStatus: Alert['status']) => {
+  const handleAlertStatusChange = async (alertId: string, newStatus: Alert['status']) => {
     setAlerts(prev =>
       prev.map(alert =>
         alert.id === alertId ? { ...alert, status: newStatus } : alert
       )
     );
+    if (useBackend) {
+      try {
+        await patchAlert(alertId, newStatus);
+      } catch {
+        /* keep optimistic update */
+      }
+    } else {
+      const updated = alerts.map(a => a.id === alertId ? { ...a, status: newStatus } : a);
+      localStorage.setItem(ALERTS_STORAGE_KEY, JSON.stringify(updated));
+    }
   };
 
-  // Calculate statistics for charts
-  const avgRiskScore = scoredBatches.length > 0
-    ? Math.round(scoredBatches.reduce((sum, b) => sum + b.risk_score, 0) / scoredBatches.length)
-    : 0;
-  
-  const highRiskBatches = scoredBatches.filter(b => b.risk_score >= 75).length;
+  const avgRiskScore = stats
+    ? Math.round(stats.avg_risk_score)
+    : scoredBatches.length > 0
+      ? Math.round(scoredBatches.reduce((s, b) => s + b.risk_score, 0) / scoredBatches.length)
+      : 0;
+
+  const totalBatches = stats?.total_batches ?? scoredBatches.length;
+
+  const highRiskBatches = stats?.high_risk_count ?? scoredBatches.filter(b => b.risk_score >= 75).length;
+
   const totalAnomalies = flags.length;
+
   const dataCompleteness = scoredBatches.length > 0
-    ? Math.round((scoredBatches.filter(b => 
-        b.production_volume_kg !== null && 
-        b.chemical_usage_kg !== null && 
+    ? Math.round((scoredBatches.filter(b =>
+        b.production_volume_kg !== null &&
+        b.chemical_usage_kg !== null &&
         b.etp_runtime_min !== null
       ).length / scoredBatches.length) * 100)
     : 0;
 
-  // Trend data (mock monthly data)
-  const trendData = batches.length > 0 ? [
-    { label: 'Jan', value: 78 },
-    { label: 'Feb', value: 65 },
-    { label: 'Mar', value: 72 },
-    { label: 'Apr', value: 58 },
-    { label: 'May', value: 45 },
-    { label: 'Jun', value: 52 },
-    { label: 'Jul', value: 68 },
-    { label: 'Aug', value: avgRiskScore },
-  ] : [];
+  const buildTrendData = () => {
+    if (scoredBatches.length === 0) return [];
+    const grouped = new Map<string, number[]>();
+    scoredBatches.forEach(b => {
+      if (!b.shift_date) return;
+      const month = b.shift_date.slice(0, 7);
+      const arr = grouped.get(month) || [];
+      arr.push(b.risk_score);
+      grouped.set(month, arr);
+    });
+    const sorted = Array.from(grouped.entries()).sort((a, b) => a[0].localeCompare(b[0]));
+    return sorted.map(([month, scores]) => ({
+      label: month,
+      value: Math.round(scores.reduce((s, v) => s + v, 0) / scores.length),
+    }));
+  };
 
-  // Type distribution data
-  const typeData = batches.length > 0 ? [
+  const trendData = buildTrendData();
+
+  const typeData = scoredBatches.length > 0 ? [
     { label: 'Probable Bypass', value: flags.filter(f => f.type === 'probable_bypass').length, color: '#dc2626' },
     { label: 'Missing Fields', value: flags.filter(f => f.type === 'missing_field').length, color: '#ea580c' },
     { label: 'Triangulation', value: flags.filter(f => f.type === 'triangulation_mismatch').length, color: '#f59e0b' },
@@ -141,20 +191,29 @@ export default function DashboardClient() {
     { label: 'Power Anomaly', value: flags.filter(f => f.type === 'power_anomaly').length, color: '#10b981' },
   ].filter(d => d.value > 0) : [];
 
-  // Radar data for compliance metrics
-  const radarData = batches.length > 0 ? [
+  const radarData = totalBatches > 0 ? [
     { label: 'Data Quality', value: dataCompleteness },
     { label: 'Compliance', value: Math.max(0, 100 - avgRiskScore) },
-    { label: 'Coverage', value: 85 },
-    { label: 'Validation', value: Math.max(0, 100 - (totalAnomalies / batches.length) * 50) },
-    { label: 'Monitoring', value: 92 },
+    { label: 'Coverage', value: Math.min(100, Math.round((totalBatches / Math.max(totalBatches, 50)) * 100)) },
+    { label: 'Validation', value: Math.max(0, 100 - (totalAnomalies / totalBatches) * 50) },
+    { label: 'Monitoring', value: alerts.filter(a => a.status !== 'pending').length > 0 ? 90 : 70 },
   ] : [];
+
+  if (isLoading) {
+    return (
+      <div className="min-h-full bg-background p-4">
+        <Topbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-green-700" />
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-full bg-background p-4">
-      <Topbar/>
+      <Topbar />
       <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
-      {/* Header with actions */}
       <div className="px-6 py-4 z-10">
         <div className="flex items-center justify-between">
           <div>
@@ -162,27 +221,19 @@ export default function DashboardClient() {
             <p className="text-md text-foreground/60 mt-1">
               Real-time compliance monitoring and risk detection for textile manufacturing.
             </p>
-            
           </div>
           <div className="flex items-center gap-3">
             <Button variant="primary" className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white" onClick={() => router.push('/data-upload')}>
               <Upload className="w-4 h-4 mr-2" />
               Upload Data
             </Button>
-            {batches.length > 0 && (
-              <Button variant="outline" className='rounded-full' onClick={handleReset}>
-                Reset Demo
-              </Button>
-            )}
           </div>
         </div>
       </div>
 
       <div className="p-4 space-y-4">
-
-        {batches.length > 0 ? (
+        {totalBatches > 0 ? (
           <>
-            {/* Analysis Cards Row */}
             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
               <AnalysisCard
                 title="Average Risk Score"
@@ -193,13 +244,13 @@ export default function DashboardClient() {
               <AnalysisCard
                 title="High Risk Batches"
                 value={highRiskBatches}
-                percentage={(highRiskBatches / batches.length) * 100}
+                percentage={(highRiskBatches / totalBatches) * 100}
                 color={highRiskBatches > 0 ? 'red' : 'green'}
               />
               <AnalysisCard
                 title="Total Anomalies"
                 value={totalAnomalies}
-                percentage={Math.min(100, (totalAnomalies / batches.length) * 20)}
+                percentage={Math.min(100, (totalAnomalies / totalBatches) * 20)}
                 color={totalAnomalies > 10 ? 'orange' : 'blue'}
               />
               <AnalysisCard
@@ -210,7 +261,6 @@ export default function DashboardClient() {
               />
             </div>
 
-            {/* Charts Row 1 */}
             <div className="grid grid-cols-1 lg:grid-cols-2 gap-3">
               <TrendChart
                 data={trendData}
@@ -223,7 +273,6 @@ export default function DashboardClient() {
               />
             </div>
 
-            {/* Charts Row 2 - Radar and Validation */}
             <div className="grid grid-cols-1 lg:grid-cols-3 gap-3">
               <div className="lg:col-span-1">
                 <RadarChart
@@ -232,16 +281,14 @@ export default function DashboardClient() {
                   color="#10b981"
                 />
               </div>
-              
               <div className="lg:col-span-2">
                 <ValidationPanel
                   flags={flags}
-                  totalBatches={batches.length}
+                  totalBatches={totalBatches}
                 />
               </div>
             </div>
 
-            {/* Alerts Section */}
             <AlertsPanel
               alerts={alerts}
               onStatusChange={handleAlertStatusChange}
@@ -252,7 +299,7 @@ export default function DashboardClient() {
             <Database className="w-16 h-16 mx-auto mb-4 text-foreground/30" />
             <h3 className="text-xl font-semibold mb-2">No Data Available</h3>
             <p className="text-foreground/60 mb-6">
-              Upload your CSV file or load sample data to see visualizations, risk scores, and alerts.
+              Upload your CSV file to see visualizations, risk scores, and alerts.
             </p>
             <Button variant="primary" className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white" onClick={() => router.push('/data-upload')}>
               <Upload className="w-4 h-4 mr-2" />

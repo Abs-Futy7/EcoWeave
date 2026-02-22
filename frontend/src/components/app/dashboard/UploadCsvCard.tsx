@@ -5,11 +5,12 @@ import { Upload, Download, Plus } from 'lucide-react';
 import Button from '@/components/ui/Button';
 
 interface UploadCsvCardProps {
-  onFileUpload: (csvText: string) => void;
+  onFileUpload: (file: File) => void;
   onLoadSample: () => void;
+  isUploading?: boolean;
 }
 
-export default function UploadCsvCard({ onFileUpload, onLoadSample }: UploadCsvCardProps) {
+export default function UploadCsvCard({ onFileUpload, onLoadSample, isUploading }: UploadCsvCardProps) {
   const [isDragging, setIsDragging] = useState(false);
   const fileInputRef = useRef<HTMLInputElement>(null);
 
@@ -25,13 +26,7 @@ export default function UploadCsvCard({ onFileUpload, onLoadSample }: UploadCsvC
       alert('Please upload a CSV file');
       return;
     }
-
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      const text = e.target?.result as string;
-      onFileUpload(text);
-    };
-    reader.readAsText(file);
+    onFileUpload(file);
   };
 
   const handleDrop = (e: React.DragEvent) => {
@@ -88,9 +83,10 @@ export default function UploadCsvCard({ onFileUpload, onLoadSample }: UploadCsvC
           variant="outline"
           onClick={() => fileInputRef.current?.click()}
           className="mx-auto"
+          disabled={isUploading}
         >
           <Upload className="w-4 h-4 mr-2" />
-          Choose File
+          {isUploading ? 'Uploading...' : 'Choose File'}
         </Button>
       </div>
 

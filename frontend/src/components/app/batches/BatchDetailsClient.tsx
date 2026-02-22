@@ -3,18 +3,18 @@
 import { useEffect, useState } from 'react';
 import { useRouter } from 'next/navigation';
 import type { ScoredBatch, Alert, ValidationFlag } from '@/lib/types';
-import { scoreBatches, validateBatches, scoreBatch, estimateFinancialLoss } from '@/lib/risk';
+import { scoreBatches, validateBatches } from '@/lib/risk';
+import { getBatchById, getAlerts, checkBackendHealth } from '@/lib/api';
 import Topbar from '@/components/app/Topbar';
 import Button from '@/components/ui/Button';
-import { 
-  ArrowLeft, 
-  AlertTriangle, 
-  FileText, 
-  Printer, 
+import {
+  ArrowLeft,
+  AlertTriangle,
+  Printer,
   ExternalLink,
   Copy,
   CheckCircle,
-  XCircle
+  Loader2,
 } from 'lucide-react';
 
 const STORAGE_KEY = 'ecoweave_dashboard_data';
@@ -30,47 +30,91 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
   const [alert, setAlert] = useState<Alert | null>(null);
   const [copySuccess, setCopySuccess] = useState(false);
   const [notFound, setNotFound] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
+    (async () => {
+      setIsLoading(true);
+      try {
+        const alive = await checkBackendHealth();
+        if (alive) {
+          const b = await getBatchById(batchId);
+          setBatch({
+            batch_id: b.batch_id,
+            shift_date: b.shift_date,
+            shift_name: b.shift_name,
+            production_volume_kg: b.production_volume_kg,
+            chemical_usage_kg: b.chemical_usage_kg,
+            etp_runtime_min: b.etp_runtime_min,
+            electricity_kwh: b.electricity_kwh,
+            chemical_invoice_bdt: b.chemical_invoice_bdt,
+            etp_cost_bdt: b.etp_cost_bdt,
+            notes: b.notes,
+            risk_score: b.risk_score ?? 0,
+            estimated_loss_bdt: b.estimated_loss_bdt ?? 0,
+            flags: b.flags ?? [],
+          });
+          try {
+            const alertRes = await getAlerts();
+            const match = (alertRes.alerts || []).find(
+              (a: Record<string, unknown>) => a.batch_id === batchId
+            );
+            if (match) {
+              setAlert({
+                id: String(match.id),
+                batch_id: match.batch_id as string,
+                risk_score: match.risk_score as number,
+                estimated_loss_bdt: (match.estimated_loss_bdt ?? 0) as number,
+                etp_cost_bdt: (match.etp_cost_bdt ?? 0) as number,
+                recommendation: (match.recommendation ?? '') as string,
+                flags: (match.flags ?? []) as ValidationFlag[],
+                status: match.status as Alert['status'],
+                createdAt: match.created_at as string,
+              });
+            }
+          } catch {
+            /* alerts optional */
+          }
+        } else {
+          loadFromLocalStorage();
+        }
+      } catch {
+        loadFromLocalStorage();
+      }
+      setIsLoading(false);
+    })();
+  }, [batchId]);
+
+  const loadFromLocalStorage = () => {
     const stored = localStorage.getItem(STORAGE_KEY);
     const storedAlerts = localStorage.getItem(ALERTS_STORAGE_KEY);
-    
     if (stored) {
       try {
         const data = JSON.parse(stored);
-        const foundBatch = data.batches.find((b: any) => b.batch_id === batchId);
-        
-        if (foundBatch) {
-          const flags = validateBatches(data.batches);
-          const scored = scoreBatches(data.batches, flags);
-          const scoredBatch = scored.find(b => b.batch_id === batchId);
-          
-          if (scoredBatch) {
-            setBatch(scoredBatch);
-          }
+        const flags = validateBatches(data.batches);
+        const scored = scoreBatches(data.batches, flags);
+        const found = scored.find((b: ScoredBatch) => b.batch_id === batchId);
+        if (found) {
+          setBatch(found);
         } else {
           setNotFound(true);
         }
-      } catch (e) {
-        console.error('Failed to parse stored data:', e);
+      } catch {
         setNotFound(true);
       }
     } else {
       setNotFound(true);
     }
-
     if (storedAlerts) {
       try {
         const alertsData = JSON.parse(storedAlerts);
         const foundAlert = alertsData.find((a: Alert) => a.batch_id === batchId);
-        if (foundAlert) {
-          setAlert(foundAlert);
-        }
-      } catch (e) {
-        console.error('Failed to parse alerts:', e);
+        if (foundAlert) setAlert(foundAlert);
+      } catch {
+        /* empty */
       }
     }
-  }, [batchId]);
+  };
 
   const handleCopyLink = () => {
     const url = window.location.href;
@@ -107,6 +151,17 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
     }
   };
 
+  if (isLoading) {
+    return (
+      <div className="min-h-full bg-background p-4">
+        <Topbar />
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-green-700" />
+        </div>
+      </div>
+    );
+  }
+
   if (notFound) {
     return (
       <div className="min-h-full bg-background p-4">
@@ -136,10 +191,8 @@ export default function BatchDetailsClient({ batchId }: BatchDetailsClientProps)
     return (
       <div className="min-h-full bg-background p-4">
         <Topbar />
-        <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4 max-w-4xl mx-auto">
-          <div className="text-center py-12">
-            <p className="text-foreground/60">Loading batch details...</p>
-          </div>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="w-8 h-8 animate-spin text-green-700" />
         </div>
       </div>
     );

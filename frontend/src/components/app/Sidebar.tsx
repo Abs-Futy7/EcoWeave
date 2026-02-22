@@ -2,13 +2,12 @@
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
-import { useState } from 'react';
+import { useState, useEffect } from 'react';
 import { 
   LayoutDashboard, 
   AlertTriangle, 
   FileText, 
   Settings,
-  BarChart3,
   Database,
   Upload,
   HelpCircle,
@@ -19,6 +18,8 @@ import {
 } from 'lucide-react';
 import Button from '../ui/Button';
 import Image from 'next/image';
+import { useAuth } from '@/lib/auth-context';
+import { checkBackendHealth } from '@/lib/api';
 
 const navItems = [
   { href: '/dashboard', label: 'Dashboard', icon: LayoutDashboard },
@@ -27,9 +28,7 @@ const navItems = [
   { href: '/alerts', label: 'Alerts', icon: AlertTriangle },
   { href: '/reports', label: 'Reports', icon: FileText },
   { href: '/settings', label: 'Settings', icon: Settings },
-  {href: '/help', label: 'Help', icon: HelpCircle},
-  {href: '/logout', label: 'Logout', icon: LogOutIcon}
-
+  { href: '/help', label: 'Help', icon: HelpCircle },
 ];
 
 interface SidebarProps {
@@ -40,11 +39,28 @@ interface SidebarProps {
 export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
   const pathname = usePathname();
   const [isCollapsed, setIsCollapsed] = useState(false);
+  const { logout } = useAuth();
+  const [backendOnline, setBackendOnline] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    const check = async () => {
+      const alive = await checkBackendHealth();
+      setBackendOnline(alive);
+    };
+    check();
+    const interval = setInterval(check, 30000);
+    return () => clearInterval(interval);
+  }, []);
 
   const handleNavClick = () => {
     if (onClose) {
       onClose();
     }
+  };
+
+  const handleLogout = () => {
+    if (onClose) onClose();
+    logout();
   };
 
   return (
@@ -128,12 +144,30 @@ export default function Sidebar({ isOpen = true, onClose }: SidebarProps) {
               </li>
             );
           })}
+          <li>
+            <button
+              onClick={handleLogout}
+              title={isCollapsed ? 'Logout' : undefined}
+              className={`flex items-center gap-3 w-full transition-all text-foreground/60 hover:text-red-600 ${
+                isCollapsed ? 'justify-center px-3 py-3' : 'px-4 py-3'
+              }`}
+            >
+              <LogOutIcon className={`w-5 h-5 ${isCollapsed ? 'flex-shrink-0' : ''}`} />
+              {!isCollapsed && <span className="text-left flex-1 font-normal">Logout</span>}
+            </button>
+          </li>
         </ul>
       </nav>
 
       {/* Footer */}
       {!isCollapsed && (
-        <div className="p-4 rounded-xl">
+        <div className="p-4 rounded-xl space-y-3">
+          <div className="flex items-center gap-2 px-3">
+            <span className={`w-2 h-2 rounded-full ${backendOnline === null ? 'bg-gray-400' : backendOnline ? 'bg-green-500' : 'bg-red-500'}`} />
+            <span className="text-xs text-foreground/60">
+              {backendOnline === null ? 'Checking...' : backendOnline ? 'Backend Online' : 'Backend Offline'}
+            </span>
+          </div>
           <div className='p-3 bg-gradient-to-tr from-green-800 to-green-300 rounded-lg flex flex-col'>
             <div className="text-xs text-foreground/60 text-start">
             <p className='text-xl font-bold text-gray-800'>Get Premium</p>

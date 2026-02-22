@@ -4,6 +4,7 @@ import { Upload, RotateCcw, User, LogOut, Settings, Bell, FileText, Home } from 
 import Button from '@/components/ui/Button';
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
+import { useAuth } from '@/lib/auth-context';
 
 interface TopbarProps {
   onUploadClick?: () => void;
@@ -13,6 +14,10 @@ interface TopbarProps {
 export default function Topbar({ onUploadClick, onResetClick }: TopbarProps) {
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const { user, logout } = useAuth();
+  const displayName = user?.full_name || 'User';
+  const displayEmail = user?.email || '';
+  const firstName = displayName.split(' ')[0];
 
   // Close dropdown when clicking outside
   useEffect(() => {
@@ -31,15 +36,14 @@ export default function Topbar({ onUploadClick, onResetClick }: TopbarProps) {
   }, [isDropdownOpen]);
 
   const handleLogout = () => {
-    // Add logout logic here
-    console.log('Logging out...');
     setIsDropdownOpen(false);
+    logout();
   };
 
   return (
     <header className="flex items-center px-3 md:px-6 bg-[#F7F7F7] rounded-2xl gap-3 md:gap-6 h-16 justify-between">
       <div className="ml-12 lg:ml-0">
-        <h1 className="text-lg md:text-2xl font-medium tracking-tight">Welcome Back,<span className="ml-2 font-bold text-[#004737]">John!</span></h1>
+        <h1 className="text-lg md:text-2xl font-medium tracking-tight">Welcome Back,<span className="ml-2 font-bold text-[#004737]">{firstName}!</span></h1>
     
       </div>
 
@@ -78,15 +82,15 @@ export default function Topbar({ onUploadClick, onResetClick }: TopbarProps) {
             <div className="w-8 h-8 md:w-9 md:h-9 rounded-full bg-primary text-primary-foreground flex items-center justify-center">
               <User className="w-4 h-4" />
             </div>
-            <span className="hidden sm:inline text-sm font-medium">John Doe</span>
+            <span className="hidden sm:inline text-sm font-medium">{displayName}</span>
           </button>
 
           {/* Dropdown Menu */}
           {isDropdownOpen && (
             <div className="absolute right-0 mt-2 w-56 bg-card border border-border rounded-lg shadow-lg py-1 z-50">
               <div className="px-4 py-3 border-b border-border">
-                <p className="text-sm font-medium">John Doe</p>
-                <p className="text-xs text-foreground/60">john.doe@example.com</p>
+                <p className="text-sm font-medium">{displayName}</p>
+                <p className="text-xs text-foreground/60">{displayEmail}</p>
               </div>
 
               <div className="py-1">

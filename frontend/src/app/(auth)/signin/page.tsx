@@ -1,6 +1,7 @@
 'use client';
 
 import { useState } from 'react';
+import { useRouter } from 'next/navigation';
 import {
   Mail,
   Lock,
@@ -14,20 +15,29 @@ import {
   Github,
 } from 'lucide-react';
 import Image from 'next/image';
+import { useAuth } from '@/lib/auth-context';
 
 export default function SignInPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('');
+  const { login } = useAuth();
+  const router = useRouter();
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    setError('');
     setLoading(true);
-    setTimeout(() => {
-      alert('Signed in! (Demo mode)');
+    try {
+      await login(email, password);
+      router.push('/dashboard');
+    } catch (err: any) {
+      setError(err.message || 'Invalid email or password');
+    } finally {
       setLoading(false);
-    }, 2000);
+    }
   };
 
   return (
@@ -153,6 +163,12 @@ export default function SignInPage() {
                       </button>
                     </div>
                   </div>
+
+                  {error && (
+                    <div className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-700">
+                      {error}
+                    </div>
+                  )}
 
                   <div className="flex items-center justify-between">
                     <label className="text-muted-foreground flex items-center text-sm">
