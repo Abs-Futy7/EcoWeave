@@ -1,8 +1,8 @@
 export const navbarItems = [
-  { name: "Features", href: "/" },
-  { name: "How It Works", href: "/pricing" },
-  { name: "About", href: "/about" },
-  { name: "Services", href: "/services" },
-  { name: "Pricings", href: "/blog" },
-  { name: "Contact", href: "/contact" },
+  { name: "Features", href: "/#features" },
+  { name: "How It Works", href: "/#how-it-works" },
+  { name: "Testimonials", href: "/#testimonials" },
+  { name: "Pricing", href: "/#pricing" },
+  { name: "FAQ", href: "/#faq" },
+  { name: "Contact", href: "/#contact" },
 ];

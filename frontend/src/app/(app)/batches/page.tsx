@@ -91,15 +91,19 @@ export default function BatchesPage() {
     <div className="min-h-full bg-background p-4">
       <Topbar />
       <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
-        <div className="px-6 py-4 z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-medium tracking-tight">All Batches</h1>
-              <p className="text-md text-foreground/60 mt-1">
+        <div className="px-3 py-3 z-10 sm:px-6 sm:py-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-3xl font-medium tracking-tight leading-tight sm:text-4xl">All Batches</h1>
+              <p className="text-sm sm:text-base text-foreground/60 mt-1">
                 View and analyze all batch records
               </p>
             </div>
-            <Button variant="outline" className="rounded-full" onClick={() => router.push('/dashboard')}>
+            <Button
+              variant="outline"
+              className="w-full sm:w-auto justify-center rounded-full"
+              onClick={() => router.push('/dashboard')}
+            >
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>
@@ -140,8 +144,8 @@ export default function BatchesPage() {
 
           {/* Filters */}
           <div className="rounded-xl">
-          <div className="flex flex-wrap gap-4">
-            <div className="flex-1 min-w-[200px]">
+          <div className="flex flex-col sm:flex-row sm:flex-wrap gap-3 sm:gap-4">
+            <div className="flex-1 min-w-0 sm:min-w-[200px]">
               <div className="relative">
                 <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40" />
                 <input
@@ -153,11 +157,11 @@ export default function BatchesPage() {
                 />
               </div>
             </div>
-            <div>
+            <div className="w-full sm:w-auto">
               <select
                 value={filterRisk}
                 onChange={(e) => setFilterRisk(e.target.value as any)}
-                className="px-6 py-4 border border-border rounded-full text-sm bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full sm:w-auto px-6 py-4 border border-border rounded-full text-sm bg-white cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
               >
                 <option value="all">All Risk Levels</option>
                 <option value="high">High Risk Only</option>
@@ -187,22 +191,22 @@ export default function BatchesPage() {
                     onClick={() => router.push(`/batches/${batch.batch_id}`)}
                     className="w-full bg-gradient-to-bl border border-border from-white to-gray-400/10 rounded-xl p-6 shadow-sm/3 hover:shadow-md transition-shadow text-left"
                     >
-                    <div className="flex items-center justify-between gap-4">
-                      <div className="flex items-center gap-4 flex-1">
+                    <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
+                      <div className="grid grid-cols-2 gap-3 md:flex md:items-center md:gap-4 flex-1">
                       {/* Batch ID & Date */}
-                      <div className="min-w-[150px]">
+                      <div className="md:min-w-[150px]">
                         <div className="font-bold text-lg">{batch.batch_id}</div>
                         <div className="text-sm text-foreground/60">{batch.shift_date}</div>
                       </div>
 
                       {/* Shift */}
-                      <div className="min-w-[120px]">
+                      <div className="md:min-w-[120px]">
                         <div className="text-xs text-foreground/60">Shift</div>
                         <div className="text-sm font-medium">{batch.shift_name}</div>
                       </div>
 
                       {/* Production */}
-                      <div className="min-w-[100px]">
+                      <div className="md:min-w-[100px]">
                         <div className="text-xs text-foreground/60">Production</div>
                         <div className="text-sm font-medium">
                         {batch.production_volume_kg?.toLocaleString() || 'N/A'} kg
@@ -210,7 +214,7 @@ export default function BatchesPage() {
                       </div>
 
                       {/* ETP Runtime */}
-                      <div className="min-w-[100px]">
+                      <div className="md:min-w-[100px]">
                         <div className="text-xs text-foreground/60">ETP Runtime</div>
                         <div className="text-sm font-medium">
                         {batch.etp_runtime_min !== null ? `${batch.etp_runtime_min} min` : 'N/A'}
@@ -218,7 +222,7 @@ export default function BatchesPage() {
                       </div>
 
                       {/* Risk Score */}
-                      <div className="min-w-[120px]">
+                      <div className="md:min-w-[120px]">
                         <div className={`inline-flex items-center gap-2 px-3 py-1 rounded-full border font-semibold ${getRiskColor(batch.risk_score)}`}>
                         {batch.risk_score >= 75 && <AlertTriangle className="w-4 h-4" />}
                         {batch.risk_score}
@@ -229,7 +233,7 @@ export default function BatchesPage() {
                       </div>
                       </div>
 
-                      <ChevronRight className="w-5 h-5 text-foreground/40" />
+                      <ChevronRight className="w-5 h-5 text-foreground/40 self-end md:self-center" />
                     </div>
 
                     {/* Flags indicator */}

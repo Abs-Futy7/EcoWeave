@@ -29,7 +29,7 @@ const cardVariants: Variants = {
 
 export default function Pricings() {
   return (
-    <section id="pricing" className="py-20 px-6">
+    <section id="pricing" className="py-20 px-6 scroll-mt-28">
       <div className="max-w-5xl mx-auto">
         {/* Header */}
         <motion.div
@@ -46,7 +46,7 @@ export default function Pricings() {
           </div>
           <motion.h2
             variants={headerVariants}
-            className="text-5xl font-bold text-gray-900 mb-4"
+            className="text-5xl font-bold bg-gradient-to-r from-[#06963b] via-[#0c5326] to-[#004737] bg-clip-text text-transparent mb-4"
           >
             The perfect plan for any textile facility
           </motion.h2>

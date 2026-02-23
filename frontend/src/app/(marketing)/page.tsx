@@ -9,6 +9,8 @@ import Footer from '@/components/layout/Footer';
 import Testimonials from '@/components/sections/Testimonials';
 import Feature2 from '@/components/sections/Feature2';
 import { cn } from '@/lib/utils';
+import { AuroraBackground } from '@/components/ui/AuroraBackground';
+import { Spotlight } from '@/components/ui/spotlight-new';
 
 export const metadata: Metadata = {
   title: 'EcoWeave - AI-Powered Textile Compliance Risk Platform',
@@ -28,8 +30,13 @@ export default function HomePage() {
       />
       
       <div className="relative z-10">
-        <Navbar/>
-        <Hero />
+    <Spotlight />
+            
+            <Navbar/>
+            <Hero />
+    
+            
+        
         <Feature2 />
         <HowItWorksTimeline />
         <Testimonials/>

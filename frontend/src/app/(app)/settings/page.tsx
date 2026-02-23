@@ -127,22 +127,22 @@ export default function SettingsPage() {
     <div className="min-h-full bg-background p-4">
       <Topbar />
       <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
-        <div className="px-6 py-4 z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-medium tracking-tight">Settings</h1>
-              <p className="text-md text-foreground/60 mt-1">
+        <div className="px-3 py-3 z-10 sm:px-6 sm:py-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-3xl font-medium tracking-tight leading-tight sm:text-4xl">Settings</h1>
+              <p className="text-sm sm:text-base text-foreground/60 mt-1 max-w-md">
                 Manage your account, notifications, and preferences
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" className="rounded-full" onClick={() => router.push('/dashboard')}>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+              <Button variant="outline" className="w-full sm:w-auto justify-center rounded-full" onClick={() => router.push('/dashboard')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Dashboard
               </Button>
               <Button
                 variant="primary"
-                className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white"
+                className="w-full sm:w-auto justify-center rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white"
                 onClick={handleSave}
                 disabled={isSaving}
               >
@@ -207,8 +207,8 @@ export default function SettingsPage() {
                     { key: 'alertNotifications', label: 'Alert Notifications', desc: 'Get notified about high-risk batches' },
                     { key: 'weeklyReports', label: 'Weekly Reports', desc: 'Receive weekly compliance summary' },
                   ].map(item => (
-                    <div key={item.key} className="flex items-center justify-between">
-                      <div>
+                    <div key={item.key} className="flex items-start justify-between gap-3">
+                      <div className="min-w-0">
                         <div className="font-medium">{item.label}</div>
                         <div className="text-sm text-foreground/60">{item.desc}</div>
                       </div>

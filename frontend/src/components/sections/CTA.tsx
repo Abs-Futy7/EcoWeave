@@ -10,7 +10,7 @@ export default function CTA() {
 
   return (
     <>
-      <section className="py-20 px-6">
+      <section id="contact" className="py-20 px-6 scroll-mt-28">
         <div className="max-w-5xl mx-auto">
           <div className="relative rounded-3xl overflow-hidden shadow-2xl shadow-[#004737]/20">
             {/* Background Image */}

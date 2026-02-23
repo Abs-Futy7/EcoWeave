@@ -43,10 +43,10 @@ export function Testimonials({
       
       <div className="max-w-7xl mx-auto relative z-10">
         <div className="flex flex-col items-center justify-center mb-16">
-          <div className="inline-block mb-3 px-4 py-1.5 bg-[#004737]/5 border border-[#004737]/10 rounded-full">
-            <span className="text-[#004737] text-sm font-medium tracking-wider uppercase">Client Stories</span>
+          <div className="inline-block mb-6">
+            <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-200">Client Stories</span>
           </div>
-          <h2 className="text-center text-5xl font-bold mb-5 text-[#004737] tracking-tight" >
+          <h2 className="text-center text-5xl font-bold mb-5 bg-gradient-to-r from-[#06963b] via-[#0c5326] to-[#004737] bg-clip-text text-transparent tracking-tight" >
             {title}
           </h2>
           <div className="w-24 h-0.5 bg-gradient-to-r from-transparent via-[#004737]/40 to-transparent mx-auto mb-6"></div>
@@ -74,7 +74,7 @@ export function Testimonials({
               .map((testimonial, index) => (
                 <Card
                   key={index}
-                  className="w-80 h-auto p-7 relative bg-[#f9f9f9]  transition-all duration-300 "
+                  className="w-90 h-auto p-7 relative bg-[#f9f9f9]  transition-all duration-300 border border-[#004737]/40 rounded-lg cursor-pointer hover:shadow-lg"
                 >
                   {/* Accent bar that reveals on hover */}
                   <div className="absolute left-0 top-0 bottom-0 w-1 bg-gradient-to-b from-[#004737] to-[#2d5f4f] opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
@@ -99,7 +99,7 @@ export function Testimonials({
                     </div>
                   </div>
                   <div className="mb-4">
-                    <p className="text-[#2d5f4f]/80 font-light leading-relaxed">
+                    <p className="text-gray-700 font-light leading-relaxed">
                       "{testimonial.text}"
                     </p>
                   </div>

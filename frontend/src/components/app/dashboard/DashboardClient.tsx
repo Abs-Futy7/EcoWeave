@@ -214,16 +214,20 @@ export default function DashboardClient() {
     <div className="min-h-full bg-background p-4">
       <Topbar />
       <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
-      <div className="px-6 py-4 z-10">
-        <div className="flex items-center justify-between">
-          <div>
-            <h1 className="text-4xl font-medium tracking-tight">Risk Analysis Dashboard</h1>
-            <p className="text-md text-foreground/60 mt-1">
+      <div className="px-3 py-3 sm:px-6 sm:py-4 z-10">
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="min-w-0">
+            <h1 className="text-3xl sm:text-4xl font-medium tracking-tight leading-tight">Risk Analysis Dashboard</h1>
+            <p className="text-sm sm:text-base text-foreground/60 mt-1 max-w-xl">
               Real-time compliance monitoring and risk detection for textile manufacturing.
             </p>
           </div>
-          <div className="flex items-center gap-3">
-            <Button variant="primary" className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white" onClick={() => router.push('/data-upload')}>
+          <div className="flex w-full sm:w-auto items-center gap-3">
+            <Button
+              variant="primary"
+              className="w-full sm:w-auto justify-center rounded-full bg-gradient-to-b from-[#004737] to-green-700 px-4 py-2.5 text-sm sm:text-base text-white hover:from-green-500 hover:to-green-700"
+              onClick={() => router.push('/data-upload')}
+            >
               <Upload className="w-4 h-4 mr-2" />
               Upload Data
             </Button>

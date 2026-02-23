@@ -25,7 +25,7 @@ const faqVariants: Variants = {
 
 export default function FAQ() {
   return (
-    <section id="faq" className="flex flex-col py-20 px-6 items-center justify-center">
+    <section id="faq" className="flex flex-col items-center justify-center px-4 py-16 scroll-mt-28 sm:px-6 sm:py-20">
       <motion.div
         className="inline-block mb-10"
         variants={headerVariants}
@@ -37,22 +37,23 @@ export default function FAQ() {
           FAQ
         </span>
       </motion.div>
-      <div className="max-w-8xl mx-auto flex gap-12 items-start justify-center ">
+      <div className="mx-auto flex w-full max-w-6xl flex-col gap-10 lg:flex-row lg:items-start lg:justify-between lg:gap-16">
         <motion.div
-          className="text-start mt-3 mr-20"
+          className="mt-0 max-w-xl text-center lg:mt-3 lg:text-left"
           variants={headerVariants}
           initial="hidden"
           whileInView="visible"
           viewport={{ once: true, amount: 0.5 }}
         >
-          <h2 className="text-4xl font-bold tracking-tight mb-4 text-[#004737]">Have Questions? We have</h2>
-          <h2 className="text-4xl font-bold mb-4 text-[#004737] tracking-tight -mt-4">you covered.</h2>
-          <p className="text-lg text-foreground/70">
+          <h2 className="mb-4 text-3xl font-bold tracking-tight bg-gradient-to-r from-[#06963b] via-[#0c5326] to-[#004737] bg-clip-text text-transparent sm:text-4xl">
+            Have Questions? We have you covered.
+          </h2>
+          <p className="text-base text-foreground/70 sm:text-lg">
             Everything you need to know about EcoWeave
           </p>
         </motion.div>
 
-        <div className="space-y-3 max-w-[600px]">
+        <div className="w-full max-w-3xl space-y-3">
           {faqs.map((faq, index) => (
             <motion.details
               key={index}
@@ -62,12 +63,12 @@ export default function FAQ() {
               whileInView="visible"
               viewport={{ once: true, amount: 0.2 }}
             >
-              <summary className="cursor-pointer px-6 py-4 font-semibold text-lg flex justify-between items-center hover:text-primary transition-colors">
+              <summary className="flex cursor-pointer items-center justify-between gap-4 px-4 py-4 text-base font-semibold transition-colors hover:text-primary sm:px-6 sm:text-lg">
                 {faq.question}
-                <span className="text-primary group-open:rotate-90 transition-transform">+</span>
+                <span className="shrink-0 text-primary transition-transform group-open:rotate-90">+</span>
               </summary>
               <motion.div
-                className="px-6 pb-6 text-foreground/70"
+                className="px-4 pb-5 text-sm text-foreground/70 sm:px-6 sm:pb-6 sm:text-base"
                 variants={faqVariants}
                 initial="hidden"
                 whileInView="visible"
