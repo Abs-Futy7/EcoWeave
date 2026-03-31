@@ -87,16 +87,51 @@ async def upload_csv(
         new_alerts = []
 
         for _, row in df.iterrows():
+            row_batch_id = row.get("batch_id")
+            if row_batch_id is None or (isinstance(row_batch_id, float) and pd.isna(row_batch_id)):
+                row_batch_id = row.get("shift_batch_id")
+
+            production_volume_kg = _safe_float(row.get("production_volume_kg"))
+
+            chemical_usage_kg = _safe_float(row.get("chemical_usage_kg"))
+            chemical_usage_liters = _safe_float(row.get("chemical_usage_liters"))
+            if chemical_usage_kg is None and chemical_usage_liters is not None:
+                chemical_usage_kg = chemical_usage_liters
+
+            etp_runtime_min = _safe_float(row.get("etp_runtime_min"))
+            etp_status = _safe_float(row.get("etp_status"))
+            if etp_runtime_min is None and etp_status is not None:
+                etp_runtime_min = 480.0 if etp_status >= 0.5 else 0.0
+
+            electricity_kwh = _safe_float(row.get("electricity_kwh"))
+            electricity_usage_kwh = _safe_float(row.get("electricity_usage_kwh"))
+            if electricity_kwh is None:
+                electricity_kwh = electricity_usage_kwh
+
+            chemical_invoice_bdt = _safe_float(row.get("chemical_invoice_bdt"))
+            source_fine_bdt = _safe_float(row.get("source_fine_bdt"))
+            if chemical_invoice_bdt is None:
+                chemical_invoice_bdt = source_fine_bdt
+
             batch_data = {
-                "batch_id": str(row.get("batch_id", f"B-{uuid.uuid4().hex[:6]}")),
+                "batch_id": str(row_batch_id) if row_batch_id is not None else f"B-{uuid.uuid4().hex[:6]}",
+                "shift_batch_id": str(row_batch_id) if row_batch_id is not None else "",
                 "shift_date": str(row.get("shift_date", "")),
                 "shift_name": str(row.get("shift_name", "")) if pd.notna(row.get("shift_name")) else "",
-                "production_volume_kg": _safe_float(row.get("production_volume_kg")),
-                "chemical_usage_kg": _safe_float(row.get("chemical_usage_kg")),
-                "etp_runtime_min": _safe_float(row.get("etp_runtime_min")),
-                "electricity_kwh": _safe_float(row.get("electricity_kwh")),
-                "chemical_invoice_bdt": _safe_float(row.get("chemical_invoice_bdt")),
+                "production_volume_kg": production_volume_kg,
+                "chemical_usage_kg": chemical_usage_kg,
+                "etp_runtime_min": etp_runtime_min,
+                "electricity_kwh": electricity_kwh,
+                "chemical_invoice_bdt": chemical_invoice_bdt,
                 "etp_cost_bdt": _safe_float(row.get("etp_cost_bdt")),
+                "chemical_usage_liters": chemical_usage_liters if chemical_usage_liters is not None else chemical_usage_kg,
+                "etp_status": etp_status if etp_status is not None else (1.0 if etp_runtime_min and etp_runtime_min > 0 else 0.0 if etp_runtime_min is not None else None),
+                "electricity_usage_kwh": electricity_usage_kwh if electricity_usage_kwh is not None else electricity_kwh,
+                "source_fine_bdt": source_fine_bdt if source_fine_bdt is not None else chemical_invoice_bdt,
+                "etp_capacity_liters": _safe_float(row.get("etp_capacity_liters")),
+                "ph": _safe_float(row.get("ph")),
+                "bod_mg_per_l": _safe_float(row.get("bod_mg_per_l")),
+                "cod_mg_per_l": _safe_float(row.get("cod_mg_per_l")),
                 "notes": str(row.get("notes", "")) if pd.notna(row.get("notes")) else "",
             }
 

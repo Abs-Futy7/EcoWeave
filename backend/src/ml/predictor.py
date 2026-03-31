@@ -1,30 +1,132 @@
-import os
 import logging
-from typing import Optional
+from pathlib import Path
+from typing import Any
+
+import numpy as np
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 model = None
 model_loaded = False
 model_version = "none"
+model_path_loaded = None
+expected_feature_columns: list[str] = []
 
-MODEL_PATH = os.path.join(os.path.dirname(__file__), "..", "..", "models", "ecoweave_model.pkl")
+BACKEND_ROOT = Path(__file__).resolve().parents[2]
+WORKSPACE_ROOT = BACKEND_ROOT.parent
+MODEL_CANDIDATE_PATHS = [
+    BACKEND_ROOT / "models" / "risk_score_xgboost_pipeline.pkl",
+    BACKEND_ROOT / "models" / "ecoweave_model.pkl",
+    WORKSPACE_ROOT / "risk_score_xgboost_pipeline.pkl",
+]
+
+DEFAULT_FEATURE_COLUMNS = [
+    "production_volume_kg",
+    "chemical_usage_liters",
+    "etp_status",
+    "electricity_usage_kwh",
+    "source_fine_bdt",
+    "etp_cost_bdt",
+    "etp_capacity_liters",
+    "ph",
+    "bod_mg_per_l",
+    "cod_mg_per_l",
+]
+
+
+def _safe_float(value: Any) -> float | None:
+    if value is None:
+        return None
+    if pd.isna(value):
+        return None
+    try:
+        return float(value)
+    except (TypeError, ValueError):
+        return None
+
+
+def _derive_etp_runtime_min(batch: dict) -> float | None:
+    runtime = _safe_float(batch.get("etp_runtime_min"))
+    if runtime is not None:
+        return runtime
+
+    etp_status = _safe_float(batch.get("etp_status"))
+    if etp_status is None:
+        return None
+
+    if etp_status <= 0:
+        return 0.0
+
+    # For status-based payloads, use one full-shift proxy runtime.
+    return 480.0 * min(etp_status, 1.0)
+
+
+def _derive_etp_status(batch: dict) -> float | None:
+    etp_status = _safe_float(batch.get("etp_status"))
+    if etp_status is not None:
+        return 1.0 if etp_status >= 0.5 else 0.0
+
+    runtime = _safe_float(batch.get("etp_runtime_min"))
+    if runtime is None:
+        return None
+    return 1.0 if runtime > 0 else 0.0
+
+
+def _extract_expected_features(loaded_model: Any) -> list[str]:
+    if hasattr(loaded_model, "feature_names_in_"):
+        features = [str(c) for c in list(loaded_model.feature_names_in_)]
+        if features:
+            return features
+
+    preprocessor = None
+    if hasattr(loaded_model, "named_steps"):
+        preprocessor = loaded_model.named_steps.get("preprocessor")
+
+    if preprocessor is not None and hasattr(preprocessor, "feature_names_in_"):
+        features = [str(c) for c in list(preprocessor.feature_names_in_)]
+        if features:
+            return features
+
+    return DEFAULT_FEATURE_COLUMNS.copy()
 
 
 def load_model():
-    global model, model_loaded, model_version
+    global model, model_loaded, model_version, model_path_loaded, expected_feature_columns
     try:
         import joblib
-        if os.path.exists(MODEL_PATH):
-            model = joblib.load(MODEL_PATH)
-            model_loaded = True
-            model_version = "1.0.0"
-            logger.info("ML model loaded from %s", MODEL_PATH)
-        else:
-            model_loaded = False
-            logger.warning("Model file not found at %s, using rule-based fallback", MODEL_PATH)
-    except Exception as e:
+
+        for candidate in MODEL_CANDIDATE_PATHS:
+            if not candidate.exists():
+                continue
+
+            try:
+                model = joblib.load(candidate)
+                expected_feature_columns = _extract_expected_features(model)
+                model_loaded = True
+                model_version = candidate.stem
+                model_path_loaded = str(candidate)
+                logger.info(
+                    "ML model loaded from %s with %d expected features",
+                    model_path_loaded,
+                    len(expected_feature_columns),
+                )
+                return
+            except Exception as inner_exc:
+                logger.error("Failed to load model from %s: %s", candidate, str(inner_exc))
+
+        model = None
         model_loaded = False
+        model_version = "none"
+        model_path_loaded = None
+        expected_feature_columns = []
+        logger.warning("No compatible ML model file found, using rule-based fallback")
+    except Exception as e:
+        model = None
+        model_loaded = False
+        model_version = "none"
+        model_path_loaded = None
+        expected_feature_columns = []
         logger.error("Failed to load ML model: %s", str(e))
 
 
@@ -32,11 +134,21 @@ def _rule_based_score(batch: dict) -> dict:
     score = 10
     flags = []
 
-    production = batch.get("production_volume_kg")
-    chemical = batch.get("chemical_usage_kg")
-    etp = batch.get("etp_runtime_min")
-    electricity = batch.get("electricity_kwh")
-    invoice = batch.get("chemical_invoice_bdt")
+    production = _safe_float(batch.get("production_volume_kg"))
+    chemical = _safe_float(batch.get("chemical_usage_kg"))
+    if chemical is None:
+        chemical = _safe_float(batch.get("chemical_usage_liters"))
+
+    etp = _derive_etp_runtime_min(batch)
+
+    electricity = _safe_float(batch.get("electricity_kwh"))
+    if electricity is None:
+        electricity = _safe_float(batch.get("electricity_usage_kwh"))
+
+    invoice = _safe_float(batch.get("chemical_invoice_bdt"))
+    if invoice is None:
+        invoice = _safe_float(batch.get("source_fine_bdt"))
+
     shift = batch.get("shift_name", "")
 
     if production is None:
@@ -111,33 +223,69 @@ def _rule_based_score(batch: dict) -> dict:
     }
 
 
+def _build_model_input(batch: dict) -> pd.DataFrame:
+    features = expected_feature_columns or DEFAULT_FEATURE_COLUMNS
+
+    production = _safe_float(batch.get("production_volume_kg"))
+    chemical_usage_liters = _safe_float(batch.get("chemical_usage_liters"))
+    if chemical_usage_liters is None:
+        chemical_usage_liters = _safe_float(batch.get("chemical_usage_kg"))
+
+    etp_status = _derive_etp_status(batch)
+
+    electricity_usage_kwh = _safe_float(batch.get("electricity_usage_kwh"))
+    if electricity_usage_kwh is None:
+        electricity_usage_kwh = _safe_float(batch.get("electricity_kwh"))
+
+    source_fine_bdt = _safe_float(batch.get("source_fine_bdt"))
+    if source_fine_bdt is None:
+        source_fine_bdt = _safe_float(batch.get("chemical_invoice_bdt"))
+
+    canonical_values = {
+        "production_volume_kg": production,
+        "chemical_usage_liters": chemical_usage_liters,
+        "etp_status": etp_status,
+        "electricity_usage_kwh": electricity_usage_kwh,
+        "source_fine_bdt": source_fine_bdt,
+        "etp_cost_bdt": _safe_float(batch.get("etp_cost_bdt")),
+        "etp_capacity_liters": _safe_float(batch.get("etp_capacity_liters")),
+        "ph": _safe_float(batch.get("ph")),
+        "bod_mg_per_l": _safe_float(batch.get("bod_mg_per_l")),
+        "cod_mg_per_l": _safe_float(batch.get("cod_mg_per_l")),
+        "shift_batch_id": batch.get("shift_batch_id") or batch.get("batch_id"),
+    }
+
+    row: dict[str, Any] = {}
+    for feature in features:
+        if feature in canonical_values:
+            row[feature] = canonical_values[feature]
+        elif feature in batch:
+            row[feature] = batch.get(feature)
+        elif feature == "chemical_usage_kg":
+            row[feature] = canonical_values["chemical_usage_liters"]
+        elif feature == "etp_runtime_min":
+            row[feature] = _derive_etp_runtime_min(batch)
+        elif feature == "electricity_kwh":
+            row[feature] = canonical_values["electricity_usage_kwh"]
+        elif feature == "chemical_invoice_bdt":
+            row[feature] = canonical_values["source_fine_bdt"]
+        else:
+            row[feature] = np.nan
+
+    return pd.DataFrame([row])
+
+
 def _ml_based_score(batch: dict) -> dict:
-    import numpy as np
-
-    shift_name = batch.get("shift_name", "")
-    shift_encoded = 1 if shift_name and "night" in shift_name.lower() else 0
-
-    features = np.array([[
-        batch.get("production_volume_kg") or 0,
-        batch.get("chemical_usage_kg") or 0,
-        batch.get("etp_runtime_min") or 0,
-        batch.get("electricity_kwh") or 0,
-        batch.get("chemical_invoice_bdt") or 0,
-        batch.get("etp_cost_bdt") or 0,
-        shift_encoded,
-    ]])
-
     try:
-        prediction = model.predict(features)
-        risk_score = float(prediction[0][0]) if hasattr(prediction[0], '__len__') else float(prediction[0])
+        model_input = _build_model_input(batch)
+        prediction = model.predict(model_input)
+        risk_score = float(np.asarray(prediction).reshape(-1)[0])
         risk_score = max(0, min(100, risk_score))
 
-        bypass_prob = 0.0
-        if hasattr(model, 'predict_proba'):
-            proba = model.predict_proba(features)
+        bypass_prob = risk_score / 100.0
+        if hasattr(model, "predict_proba"):
+            proba = model.predict_proba(model_input)
             bypass_prob = float(proba[0][1]) if len(proba[0]) > 1 else float(proba[0][0])
-        else:
-            bypass_prob = risk_score / 100.0
 
         bypass = bypass_prob >= 0.5
 
