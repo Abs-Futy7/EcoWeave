@@ -192,6 +192,9 @@
 }
 
 @layer base {
+  html {
+    scroll-behavior: smooth;
+  }
   * {
     @apply border-border outline-ring/50;
   }
@@ -199,4 +202,62 @@
     @apply bg-background text-foreground;
     font-family: 'Bricolage Grotesque', -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
   }
+}
+
+@keyframes orbital-pulse {
+  0%,
+  100% {
+    opacity: 0.9;
+  }
+  50% {
+    opacity: 0.35;
+  }
+}
+
+@keyframes orbital-ping {
+  75%,
+  100% {
+    transform: scale(1.7);
+    opacity: 0;
+  }
+}
+
+.animate-orbital-pulse {
+  animation: orbital-pulse 1.6s cubic-bezier(0.4, 0, 0.6, 1) infinite;
+}
+
+.animate-orbital-ping {
+  animation: orbital-ping 1.3s cubic-bezier(0, 0, 0.2, 1) infinite;
+}
+
+@keyframes aurora-drift {
+  0% {
+    transform: translate3d(-10%, -4%, 0) scale(1.1);
+  }
+  50% {
+    transform: translate3d(8%, 6%, 0) scale(1.18);
+  }
+  100% {
+    transform: translate3d(-6%, -2%, 0) scale(1.12);
+  }
+}
+
+@keyframes aurora-drift-reverse {
+  0% {
+    transform: translate3d(9%, 5%, 0) scale(1.08);
+  }
+  50% {
+    transform: translate3d(-7%, -6%, 0) scale(1.2);
+  }
+  100% {
+    transform: translate3d(6%, 4%, 0) scale(1.1);
+  }
+}
+
+.animate-aurora-drift {
+  animation: aurora-drift 22s ease-in-out infinite alternate;
+}
+
+.animate-aurora-drift-reverse {
+  animation: aurora-drift-reverse 28s ease-in-out infinite alternate;
 }

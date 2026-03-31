@@ -78,15 +78,15 @@ export default function HelpPage() {
       <Topbar />
       <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
         {/* Header */}
-        <div className="px-6 py-4 z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-medium tracking-tight">Help Center</h1>
-              <p className="text-md text-foreground/60 mt-1">
+        <div className="px-3 py-3 z-10 sm:px-6 sm:py-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-3xl font-medium tracking-tight leading-tight sm:text-4xl">Help Center</h1>
+              <p className="text-sm sm:text-base text-foreground/60 mt-1">
                 Find answers and learn how to use EcoWeave effectively
               </p>
             </div>
-            <Button variant="outline" className="rounded-full" onClick={() => router.push('/dashboard')}>
+            <Button variant="outline" className="w-full sm:w-auto justify-center rounded-full" onClick={() => router.push('/dashboard')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>

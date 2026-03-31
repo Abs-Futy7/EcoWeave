@@ -75,7 +75,7 @@ export default function HowItWorksTimeline() {
   }, [progress]);
 
   return (
-    <section id="how-it-works" className="p-8 md:p-12 relative overflow-hidden">
+    <section id="how-it-works" className="p-8 md:p-12 relative overflow-hidden scroll-mt-28">
       <div className="mx-auto w-full max-w-6xl relative z-10">
         <motion.div
           className="relative mx-auto mb-12 max-w-2xl text-center"
@@ -84,13 +84,13 @@ export default function HowItWorksTimeline() {
           whileInView="visible"
           viewport={{ once: true, amount: 0.5 }}
         >
-          <div className="inline-block mb-3 px-4 py-1.5 bg-[#004737]/5 border border-[#004737]/10 rounded-full">
-            <span className="text-[#004737] text-sm font-medium tracking-wider uppercase">The Process</span>
+          <div className="inline-block mb-6">
+            <span className="px-4 py-1.5 rounded-full text-sm font-medium bg-green-50 text-green-700 border border-green-200">The Process</span>
           </div>
           <div className="relative z-10">
             <motion.h2
               variants={headerVariants}
-              className="text-5xl font-bold mb-5 text-[#004737] tracking-tight"
+              className="text-5xl font-bold mb-5 bg-gradient-to-r from-[#06963b] via-[#0c5326] to-[#004737] bg-clip-text text-transparent tracking-tight"
             >
               How It Works
             </motion.h2>

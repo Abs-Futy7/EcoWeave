@@ -163,21 +163,21 @@ export default function AlertsPage() {
       <Topbar />
       <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
         {/* Header with actions */}
-        <div className="px-6 py-4 z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-medium tracking-tight">Compliance Alerts</h1>
-              <p className="text-md text-foreground/60 mt-1">
+        <div className="px-3 py-3 z-10 sm:px-6 sm:py-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-3xl font-medium tracking-tight leading-tight sm:text-4xl">Compliance Alerts</h1>
+              <p className="text-sm sm:text-base text-foreground/60 mt-1">
                 Monitor and manage high-risk batches and compliance issues
               </p>
             </div>
-            <div className="flex items-center gap-3">
-              <Button variant="outline" className="rounded-full" onClick={() => router.push('/dashboard')}>
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row sm:items-center sm:gap-3">
+              <Button variant="outline" className="w-full sm:w-auto justify-center rounded-full" onClick={() => router.push('/dashboard')}>
                 <ArrowLeft className="w-4 h-4 mr-2" />
                 Back to Dashboard
               </Button>
               {alerts.length > 0 && (
-                <Button variant="outline" className="rounded-full" onClick={handleClearResolved}>
+                <Button variant="outline" className="w-full sm:w-auto justify-center rounded-full" onClick={handleClearResolved}>
                   <Trash2 className="w-4 h-4 mr-2" />
                   Clear Resolved
                 </Button>
@@ -274,7 +274,7 @@ export default function AlertsPage() {
                   className="bg-white rounded-xl p-6 shadow-sm/3 hover:shadow-md transition-shadow"
                 >
                   {/* Header Row */}
-                  <div className="flex items-start justify-between mb-4">
+                  <div className="flex flex-col gap-3 sm:flex-row sm:items-start sm:justify-between mb-4">
                     <div>
                       <div className="flex items-center gap-3 mb-2">
                         <h3 className="text-xl font-bold">Batch {alert.batch_id}</h3>
@@ -287,12 +287,12 @@ export default function AlertsPage() {
                       </div>
                     </div>
 
-                    <div className="flex flex-col items-end gap-2">
+                    <div className="flex flex-col items-start sm:items-end gap-2">
                       {getStatusBadge(alert.status)}
-                      <div className="flex gap-2">
+                      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                         <button
                           onClick={() => router.push(`/batches/${alert.batch_id}/print?autoprint=1`)}
-                          className="text-xs px-3 py-1 border border-primary text-primary rounded-full bg-[#F7F7F7] hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary flex items-center gap-1"
+                          className="w-full sm:w-auto text-xs px-3 py-1 border border-primary text-primary rounded-full bg-[#F7F7F7] hover:bg-primary hover:text-primary-foreground transition-colors cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary flex items-center justify-center gap-1"
                           title="Export Evidence PDF"
                         >
                           <FileText className="w-3 h-3" />
@@ -301,7 +301,7 @@ export default function AlertsPage() {
                         <select
                           value={alert.status}
                           onChange={(e) => handleStatusChange(alert.id, e.target.value as Alert['status'])}
-                          className="text-xs px-3 py-1 border border-border rounded-full bg-[#F7F7F7] cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
+                          className="w-full sm:w-auto text-xs px-3 py-1 border border-border rounded-full bg-[#F7F7F7] cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary"
                         >
                           <option value="pending">Mark as Pending</option>
                           <option value="acknowledged">Mark as Acknowledged</option>

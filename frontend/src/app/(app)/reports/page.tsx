@@ -133,15 +133,15 @@ export default function ReportsPage() {
       <Topbar />
       <div className="min-h-full bg-[#F7F7F7] rounded-2xl p-4 mt-4">
         {/* Header */}
-        <div className="px-6 py-4 z-10">
-          <div className="flex items-center justify-between">
-            <div>
-              <h1 className="text-4xl font-medium tracking-tight">Reports</h1>
-              <p className="text-md text-foreground/60 mt-1">
+        <div className="px-3 py-3 z-10 sm:px-6 sm:py-4">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+            <div className="min-w-0">
+              <h1 className="text-3xl font-medium tracking-tight leading-tight sm:text-4xl">Reports</h1>
+              <p className="text-sm sm:text-base text-foreground/60 mt-1">
                 Generate comprehensive compliance and performance reports
               </p>
             </div>
-            <Button variant="outline" className="rounded-full" onClick={() => router.push('/dashboard')}>
+            <Button variant="outline" className="w-full sm:w-auto justify-center rounded-full" onClick={() => router.push('/dashboard')}>
               <ArrowLeft className="w-4 h-4 mr-2" />
               Back to Dashboard
             </Button>
@@ -208,21 +208,21 @@ export default function ReportsPage() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap gap-3">
+                <div className="flex flex-col sm:flex-row sm:flex-wrap gap-2 sm:gap-3">
                   <Button 
                     variant="primary" 
-                    className="rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white"
+                    className="w-full sm:w-auto justify-center rounded-full bg-gradient-to-b from-[#004737] to-green-700 hover:from-green-500 hover:to-green-700 text-white"
                     onClick={() => handleExportReport('pdf')}
                     disabled={isExporting}
                   >
                     {isExporting ? <Loader2 className="w-4 h-4 mr-2 animate-spin" /> : <Download className="w-4 h-4 mr-2" />}
                     Export as PDF
                   </Button>
-                  <Button variant="outline" className="rounded-full" onClick={() => handleExportReport('csv')} disabled={isExporting}>
+                  <Button variant="outline" className="w-full sm:w-auto justify-center rounded-full" onClick={() => handleExportReport('csv')} disabled={isExporting}>
                     <FileSpreadsheet className="w-4 h-4 mr-2" />
                     Export as CSV
                   </Button>
-                  <Button variant="outline" className="rounded-full" onClick={() => handleExportReport('excel')} disabled={isExporting}>
+                  <Button variant="outline" className="w-full sm:w-auto justify-center rounded-full" onClick={() => handleExportReport('excel')} disabled={isExporting}>
                     <FileSpreadsheet className="w-4 h-4 mr-2" />
                     Export as Excel
                   </Button>
@@ -256,50 +256,50 @@ export default function ReportsPage() {
               {/* Recent Reports */}
               <div className="bg-white rounded-xl p-6 shadow-sm/3">
                 <h2 className="text-2xl tracking-tight font-semibold text-gray-900 mb-4">Recent Reports</h2>
-                {batches.length === 0 ? (
+                {stats.totalBatches === 0 ? (
                   <div className="text-center py-8">
                     <FileText className="w-12 h-12 mx-auto mb-3 text-foreground/30" />
                     <p className="text-foreground/60">No data available. Upload batches to generate reports.</p>
                   </div>
                 ) : (
                   <div className="space-y-3">
-                    <div className="flex items-center justify-between p-4 bg-[#F7F7F7] rounded-lg">
-                      <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-[#F7F7F7] rounded-lg">
+                      <div className="flex items-center gap-3 min-w-0">
                         <FileText className="w-5 h-5 text-[#004737]" />
                         <div>
                           <div className="font-medium">Compliance Summary - {new Date().toLocaleDateString()}</div>
                           <div className="text-sm text-foreground/60">{stats.totalBatches} batches analyzed</div>
                         </div>
                       </div>
-                      <Button variant="outline" className="rounded-full" size="sm">
+                      <Button variant="outline" className="w-full sm:w-auto justify-center rounded-full" size="sm">
                         <Download className="w-4 h-4 mr-2" />
                         Download
                       </Button>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-[#F7F7F7] rounded-lg">
-                      <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-[#F7F7F7] rounded-lg">
+                      <div className="flex items-center gap-3 min-w-0">
                         <TrendingUp className="w-5 h-5 text-green-600" />
                         <div>
                           <div className="font-medium">Financial Impact Analysis</div>
                           <div className="text-sm text-foreground/60">Generated yesterday</div>
                         </div>
                       </div>
-                      <Button variant="outline" className="rounded-full" size="sm">
+                      <Button variant="outline" className="w-full sm:w-auto justify-center rounded-full" size="sm">
                         <Download className="w-4 h-4 mr-2" />
                         Download
                       </Button>
                     </div>
 
-                    <div className="flex items-center justify-between p-4 bg-[#F7F7F7] rounded-lg">
-                      <div className="flex items-center gap-3">
+                    <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between p-4 bg-[#F7F7F7] rounded-lg">
+                      <div className="flex items-center gap-3 min-w-0">
                         <Activity className="w-5 h-5 text-red-600" />
                         <div>
                           <div className="font-medium">Anomaly Detection Report</div>
                           <div className="text-sm text-foreground/60">Generated 2 days ago</div>
                         </div>
                       </div>
-                      <Button variant="outline" className="rounded-full" size="sm">
+                      <Button variant="outline" className="w-full sm:w-auto justify-center rounded-full" size="sm">
                         <Download className="w-4 h-4 mr-2" />
                         Download
                       </Button>
