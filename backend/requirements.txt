@@ -18,3 +18,4 @@ scikit-learn
 fpdf2
 openpyxl
 numpy
+xgboost

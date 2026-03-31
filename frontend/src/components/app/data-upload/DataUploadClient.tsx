@@ -15,6 +15,11 @@ import Topbar from '../Topbar';
 const STORAGE_KEY = 'ecoweave_dashboard_data';
 const ALERTS_STORAGE_KEY = 'ecoweave_dashboard_alerts';
 
+function toNumber(value: unknown): number | null {
+  const n = Number(value);
+  return Number.isFinite(n) ? n : null;
+}
+
 export default function DataUploadClient() {
   const router = useRouter();
   const [scoredBatches, setScoredBatches] = useState<ScoredBatch[]>([]);
@@ -69,12 +74,22 @@ export default function DataUploadClient() {
         setScoredBatches(mapped);
         setFlags(allFlags);
         setHasData(true);
-        const summary = result.summary;
-        if (summary) {
-          setUploadSummary(
-            `${summary.total_rows} rows processed | ${summary.high_risk_count} high risk | Avg risk: ${Math.round(summary.avg_risk_score)}`
-          );
-        }
+        const summary = (result.summary ?? null) as Record<string, unknown> | null;
+        const totalRows =
+          (summary && (toNumber(summary.total_rows) ?? toNumber(summary.total_batches))) ?? mapped.length;
+        const highRiskCount =
+          (summary && toNumber(summary.high_risk_count)) ?? mapped.filter(b => (b.risk_score ?? 0) >= 75).length;
+        const avgRiskScore =
+          (summary && toNumber(summary.avg_risk_score)) ??
+          (mapped.length > 0
+            ? mapped.reduce((sum, b) => sum + (b.risk_score ?? 0), 0) / mapped.length
+            : 0);
+        const alertsGenerated = summary ? toNumber(summary.alerts_generated) : null;
+        const alertsPart = alertsGenerated !== null ? ` | ${alertsGenerated} alerts` : '';
+
+        setUploadSummary(
+          `${totalRows} rows processed | ${highRiskCount} high risk | Avg risk: ${Math.round(avgRiskScore)}${alertsPart}`
+        );
       } else {
         const text = await file.text();
         const parsed = parseCsvToBatches(text);

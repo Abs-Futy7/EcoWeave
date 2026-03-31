@@ -15,6 +15,8 @@ async def ml_status():
     return {
         "model_loaded": predictor.model_loaded,
         "model_version": predictor.model_version,
+        "model_path": predictor.model_path_loaded,
+        "expected_features": predictor.expected_feature_columns,
         "fallback_active": not predictor.model_loaded,
     }
 
