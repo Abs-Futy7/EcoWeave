@@ -21,7 +21,7 @@ The backend is responsible for:
 - PostgreSQL for relational storage
 - Supabase Storage for uploaded CSV files
 - Pandas for CSV parsing and export shaping
-- joblib and scikit-learn for ML model loading and inference
+- joblib, scikit-learn, and xgboost for ML model loading and inference
 - bcrypt and python-jose for password hashing and JWT authentication
 - fpdf2 and openpyxl for report generation
 
@@ -44,7 +44,12 @@ The backend starts from [main.py](e:/Hackathons/EcoWeave_Frontend/EcoWeave/backe
 On startup it:
 
 1. creates database tables from SQLAlchemy metadata
-2. loads the ML model from `backend/models/ecoweave_model.pkl` if present
+2. loads the first available compatible ML model from this priority list:
+
+- `backend/models/risk_score_xgboost_pipeline.pkl`
+- `backend/models/ecoweave_model.pkl`
+- `risk_score_xgboost_pipeline.pkl` (workspace root)
+
 3. registers all routers
 4. enables CORS for the frontend
 
@@ -94,7 +99,7 @@ Required environment variables:
 Notes:
 
 - If `SUPABASE_KEY` is missing, the app still runs but file upload to storage is skipped because the Supabase client is not initialized.
-- If `backend/models/ecoweave_model.pkl` is missing or fails to load, scoring automatically falls back to the rule-based engine.
+- If no compatible model file is found or model loading fails, scoring automatically falls back to the rule-based engine.
 
 ## Persistence Model
 
@@ -249,6 +254,14 @@ Key endpoints:
 
 - `GET /api/ml/status`
 - `POST /api/ml/score`
+
+Current `GET /api/ml/status` response includes:
+
+- `model_loaded`
+- `model_version`
+- `model_path`
+- `expected_features`
+- `fallback_active`
 
 ### 4. Alerts Module
 
@@ -567,19 +580,29 @@ Example upload response shape:
 ##### Phase 3: row normalization and scoring
 
 8. **The backend iterates over CSV rows**
-   For each Pandas row, the handler builds a normalized `batch_data` dictionary. The code expects these columns when present:
+   For each Pandas row, the handler builds a normalized `batch_data` dictionary. The parser accepts both legacy app-style and dataset-style column names, including:
    - `batch_id`
-   - `shift_date`
-   - `shift_name`
-   - `production_volume_kg`
-   - `chemical_usage_kg`
-   - `etp_runtime_min`
-   - `electricity_kwh`
-   - `chemical_invoice_bdt`
-   - `etp_cost_bdt`
-   - `notes`
 
-   Missing or invalid numeric values are converted to `None` through `_safe_float`. Invalid dates are converted to `None` through `_safe_date`.
+- `shift_batch_id`
+- `shift_date`
+- `shift_name`
+- `production_volume_kg`
+- `chemical_usage_kg`
+- `chemical_usage_liters`
+- `etp_runtime_min`
+- `etp_status`
+- `electricity_kwh`
+- `electricity_usage_kwh`
+- `chemical_invoice_bdt`
+- `source_fine_bdt`
+- `etp_cost_bdt`
+- `etp_capacity_liters`
+- `ph`
+- `bod_mg_per_l`
+- `cod_mg_per_l`
+- `notes`
+
+Missing or invalid numeric values are converted to `None` through `_safe_float`. Invalid dates are converted to `None` through `_safe_date`. Where needed, aliases are derived (for example `chemical_usage_liters` <-> `chemical_usage_kg`, `etp_status` <-> `etp_runtime_min`) before scoring.
 
 9. **Each row is scored**
    The route calls:
@@ -588,9 +611,10 @@ Example upload response shape:
    prediction = predict_batch(batch_data)
    ```
 
-   `predict_batch` chooses one of two paths:
-   - ML path: if `ecoweave_model.pkl` was loaded successfully
-   - fallback path: if the model file is absent or prediction fails
+`predict_batch` chooses one of two paths:
+
+- ML path: if a compatible model artifact was loaded successfully
+- fallback path: if no model artifact was loaded or prediction fails
 
 10. **A `BatchRecord` row is persisted**
     Each input row becomes a normalized database record with both source fields and computed outputs:
@@ -708,11 +732,13 @@ The scoring engine lives in [src/ml/predictor.py](e:/Hackathons/EcoWeave_Fronten
 
 ### Model loading
 
-At startup, `load_model()` checks for:
+At startup, `load_model()` checks the candidate paths in order:
 
-`backend/models/ecoweave_model.pkl`
+1. `backend/models/risk_score_xgboost_pipeline.pkl`
+2. `backend/models/ecoweave_model.pkl`
+3. `risk_score_xgboost_pipeline.pkl` (workspace root)
 
-If present, it loads the file with `joblib.load`. If not present, the backend logs a warning and falls back to rules.
+When a model is loaded, the backend extracts expected input features from pipeline metadata (`feature_names_in_` or preprocessor metadata) and exposes them in `GET /api/ml/status`.
 
 ### Rule-based scoring
 
@@ -736,17 +762,9 @@ Signals considered by the fallback engine include:
 
 ### ML-based scoring
 
-If the model is available, `_ml_based_score()` builds a feature vector from:
+If a model is available, `_ml_based_score()` builds a pandas DataFrame aligned to the model's expected feature names (instead of relying on fixed positional arrays). The mapper supports both legacy and dataset-style payload keys and can derive compatible aliases when needed.
 
-- production volume
-- chemical usage
-- ETP runtime
-- electricity usage
-- chemical invoice
-- ETP cost
-- encoded shift
-
-The model returns a risk score and optionally a probability. The backend still reuses the fallback-generated flags so the UI continues to receive human-readable anomaly explanations.
+The model returns a risk score and optionally a probability. The backend still reuses fallback-generated flags so the UI continues to receive human-readable anomaly explanations.
 
 ## Alerting Flow
 

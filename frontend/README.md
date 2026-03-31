@@ -7,6 +7,7 @@
 EcoWeave uses data triangulation and multi-factor validation to identify suspicious patterns in production data that might indicate ETP (Effluent Treatment Plant) bypasses. By analyzing metrics like production volume, chemical usage, electricity consumption, and ETP runtime, the system generates risk scores and compliance alerts to help facilities maintain environmental standards.
 
 ### Key Problem Solved
+
 Textile facilities may bypass wastewater treatment to reduce operational costs, leading to environmental violations. EcoWeave detects these bypasses through automated anomaly detection and cross-validation of operational metrics.
 
 ---
@@ -14,12 +15,12 @@ Textile facilities may bypass wastewater treatment to reduce operational costs, 
 ## ✨ Features
 
 ### 📊 Dashboard Analytics
+
 - **4 Real-time KPI Cards** with circular progress indicators
   - Average Risk Score (0-100 scale)
   - High Risk Batches (count & percentage)
   - Total Anomalies Detected
   - Data Completeness Score
-  
 - **Visual Analytics**
   - Risk Score Trend Chart (monthly timeline)
   - Anomaly Distribution Bar Chart
@@ -27,12 +28,13 @@ Textile facilities may bypass wastewater treatment to reduce operational costs, 
   - Validation Summary Panel
 
 ### 📤 Data Management
+
 - **CSV Upload Interface**
   - Drag-and-drop file upload
+  - Authenticated backend upload (`/api/csv-upload/upload`) when backend is available
   - Sample data loader for demos
   - Real-time validation feedback
-  - Auto-save to localStorage
-  
+  - Automatic fallback to local mode + localStorage when backend is unavailable
 - **Data Preview**
   - Filterable batch table
   - Risk score visualization
@@ -40,6 +42,7 @@ Textile facilities may bypass wastewater treatment to reduce operational costs, 
   - Risk threshold filtering
 
 ### 🚨 Alert System
+
 - **Automated Alert Generation**
   - High-risk batch detection (score ≥ 75)
   - Financial impact estimation (BDT)
@@ -47,12 +50,12 @@ Textile facilities may bypass wastewater treatment to reduce operational costs, 
   - Alert status workflow (Pending → Acknowledged → Resolved)
 
 ### 📁 Batch Management
+
 - **Individual Batch Analysis**
   - Detailed risk breakdown
   - Forensic evidence panel
   - Triangulation metrics
   - Related high-risk batches
-  
 - **Evidence Reports**
   - Printable PDF reports (via browser print)
   - Professional compliance documentation
@@ -60,6 +63,7 @@ Textile facilities may bypass wastewater treatment to reduce operational costs, 
   - Recommended actions
 
 ### 🔍 Validation Rules (7 Checks)
+
 1. **Missing Fields** - Detects incomplete data
 2. **Invalid Values** - Validates data ranges
 3. **Triangulation Mismatch** - Cross-checks electricity/chemical/production ratios
@@ -73,13 +77,15 @@ Textile facilities may bypass wastewater treatment to reduce operational costs, 
 ## 🛠️ Tech Stack
 
 ### Core Technologies
+
 - **Framework**: Next.js 16.1.6 (App Router)
 - **Language**: TypeScript 5
 - **Styling**: Tailwind CSS 4
 - **Icons**: lucide-react
-- **State Management**: React Hooks + localStorage
+- **State Management**: React Hooks + backend APIs + local fallback storage
 
 ### Key Features
+
 - Server Components & Client Components
 - File-based routing with route groups
 - CSS Modules for print styling
@@ -170,33 +176,45 @@ frontend/
 ## 🚀 Getting Started
 
 ### Prerequisites
-- Node.js 18+ 
+
+- Node.js 18+
 - npm or yarn
 
 ### Installation
 
 1. **Clone the repository**
+
    ```bash
    git clone <repository-url>
    cd EcoWeave/frontend
    ```
 
 2. **Install dependencies**
+
    ```bash
    npm install
    ```
 
-3. **Run development server**
+3. **Configure frontend environment**
+   Create `.env.local` and set:
+
+```bash
+NEXT_PUBLIC_API_URL=http://localhost:8000
+```
+
+4. **Run development server**
+
    ```bash
    npm run dev
    ```
 
-4. **Open in browser**
+5. **Open in browser**
    ```
    http://localhost:3000
    ```
 
 ### Build for Production
+
 ```bash
 npm run build
 npm start
@@ -209,23 +227,28 @@ npm start
 ### 1. Upload Data
 
 **Option A: Upload CSV File**
+
 1. Navigate to **Data Upload** page (sidebar menu)
 2. Click or drag-and-drop CSV file
 3. File format: `batch_id, shift_date, shift_name, production_volume_kg, chemical_usage_kg, etp_runtime_min, electricity_kwh, chemical_invoice_bdt, etp_cost_bdt, notes`
-4. Data validates and auto-saves
+4. If backend is reachable, data is uploaded, scored, and persisted by backend services
+5. If backend is offline, client falls back to local parsing/scoring for demo continuity
 
 **Option B: Load Sample Data**
+
 1. Click "Load Sample Data" button
 2. 12 pre-configured batches load instantly
 3. Includes various risk scenarios (bypasses, missing data, anomalies)
 
 **Download Template**
+
 - Click "Download Template" for proper CSV format
 - Template located at `/templates/ecoweave_template.csv`
 
 ### 2. View Dashboard
 
 Navigate to **Dashboard** to see:
+
 - **KPI Cards**: Overall health metrics
 - **Charts**: Trends, distributions, compliance metrics
 - **Validation Panel**: Data quality and top issues
@@ -234,12 +257,14 @@ Navigate to **Dashboard** to see:
 ### 3. Analyze Batches
 
 **View All Batches**
+
 1. Go to **Batches** page
 2. Search by batch ID
 3. Filter by risk level (All/High/Medium/Low)
 4. Click any batch to see details
 
 **Batch Detail Page**
+
 - Risk score breakdown
 - Forensic evidence (validation flags)
 - Financial metrics (loss estimation, ROI)
@@ -249,6 +274,7 @@ Navigate to **Dashboard** to see:
 ### 4. Manage Alerts
 
 **Alerts Page**
+
 1. View all generated alerts
 2. Filter by status (Pending/Acknowledged/Resolved)
 3. Sort by risk score or date
@@ -256,6 +282,7 @@ Navigate to **Dashboard** to see:
 5. Export individual reports
 
 **Alert Actions**
+
 - **View Details**: Navigate to batch detail
 - **Export PDF**: Open print dialog for PDF save
 - **Change Status**: Update workflow state
@@ -263,6 +290,7 @@ Navigate to **Dashboard** to see:
 ### 5. Export Reports
 
 **Browser Print Method** (No PDF library needed)
+
 1. Navigate to batch detail page
 2. Click "Export Evidence Report"
 3. Browser print dialog opens
@@ -270,6 +298,7 @@ Navigate to **Dashboard** to see:
 5. Professional A4-formatted report downloads
 
 **Report Sections**
+
 1. Executive Summary
 2. Forensic Evidence (validation flags)
 3. Risk Score Drivers
@@ -285,11 +314,13 @@ Navigate to **Dashboard** to see:
 ### Risk Scoring Algorithm (`src/lib/risk.ts`)
 
 **Base Score Calculation**
+
 ```typescript
 Base Risk = (Production Volume / 10) + (Chemical Usage)
 ```
 
 **Modifiers**
+
 - **High Production Penalty**: +25 (if > 700 kg)
 - **Low ETP Runtime Penalty**: +30 (if < 20 min)
 - **High Chemical Usage Penalty**: +20 (if > 60 kg)
@@ -300,6 +331,7 @@ Base Risk = (Production Volume / 10) + (Chemical Usage)
   - Low severity: +5 per flag
 
 **Score Range**: 0-100 (capped)
+
 - **0-49**: Low Risk (Green)
 - **50-74**: Medium Risk (Orange)
 - **75-100**: High Risk (Red)
@@ -320,24 +352,28 @@ Severity Factor:
 ### Triangulation Validation
 
 **Electricity Check**
+
 ```
 Normal Range: 0.08-0.12 kWh per kg production
 Flag if: < 0.08 (too low, possible bypass)
 ```
 
 **Chemical Ratio Check**
+
 ```
 Normal Range: 0.08-0.12 kg per kg production
 Flag if: Outside range
 ```
 
 **Treatment Intensity Check**
+
 ```
 Normal Range: 0.03-0.05 min per kg production
 Flag if: < 0.03 (inadequate treatment)
 ```
 
 **Invoice Validation**
+
 ```
 Expected: ~800 BDT per kg chemical
 Flag if: Deviation > 40%
@@ -347,36 +383,44 @@ Flag if: Deviation > 40%
 
 ## 💾 Data Storage
 
-### localStorage Keys
+### localStorage Keys (Fallback Mode)
 
 ```javascript
 // Batch data
-localStorage.setItem('ecoweave_dashboard_data', JSON.stringify({ batches }))
+localStorage.setItem("ecoweave_dashboard_data", JSON.stringify({ batches }));
 
 // Alerts data
-localStorage.setItem('ecoweave_dashboard_alerts', JSON.stringify(alerts))
+localStorage.setItem("ecoweave_dashboard_alerts", JSON.stringify(alerts));
 ```
 
 ### Data Persistence
-- All data saves automatically to browser localStorage
-- Data persists across page refreshes
-- No backend required for demo mode
-- Clear data via "Reset Demo" or "Clear Data" buttons
+
+- Primary mode: backend persistence (batches, alerts, stats, reports) via API
+- Fallback mode: localStorage when backend health check fails
+- Fallback data persists across page refreshes
+- Local fallback data can be cleared via "Reset Demo" or "Clear Data" buttons
 
 ---
 
 ## 🎨 Styling & Theming
 
 ### Tailwind Configuration
+
 - Custom color variables in `globals.css`
 - Dark mode support (CSS variables)
 - Print-specific styles in `print.module.css`
 
 ### Print Styling
+
 ```css
 @media print {
-  .no-print { display: none; }
-  @page { size: A4; margin: 15mm 20mm; }
+  .no-print {
+    display: none;
+  }
+  @page {
+    size: A4;
+    margin: 15mm 20mm;
+  }
   -webkit-print-color-adjust: exact;
 }
 ```
@@ -387,26 +431,27 @@ localStorage.setItem('ecoweave_dashboard_alerts', JSON.stringify(alerts))
 
 **12 Pre-configured Batches** (`src/lib/mock.ts`)
 
-| Batch ID | Risk Score | Scenario |
-|----------|------------|----------|
-| B-2401   | 88         | High-risk bypass |
-| B-2402   | 35         | Normal operation |
-| B-2403   | 72         | Missing data |
-| B-2404   | 42         | Normal with notes |
-| B-2405   | 58         | Medium risk |
-| B-2406   | 31         | Low utilization |
-| B-2407   | 65         | Partial missing data |
-| B-2408   | 48         | Standard production |
+| Batch ID | Risk Score | Scenario                |
+| -------- | ---------- | ----------------------- |
+| B-2401   | 88         | High-risk bypass        |
+| B-2402   | 35         | Normal operation        |
+| B-2403   | 72         | Missing data            |
+| B-2404   | 42         | Normal with notes       |
+| B-2405   | 58         | Medium risk             |
+| B-2406   | 31         | Low utilization         |
+| B-2407   | 65         | Partial missing data    |
+| B-2408   | 48         | Standard production     |
 | B-2409   | 52         | Night shift medium risk |
-| B-2410   | 78         | Invoice mismatch |
-| B-2411   | 39         | Normal day shift |
-| B-2412   | 82         | Severe bypass |
+| B-2410   | 78         | Invoice mismatch        |
+| B-2411   | 39         | Normal day shift        |
+| B-2412   | 82         | Severe bypass           |
 
 ---
 
 ## 🗺️ Route Structure
 
 ### App Routes (with Sidebar)
+
 ```
 /dashboard           → Main analytics dashboard
 /data-upload        → CSV upload interface
@@ -417,6 +462,7 @@ localStorage.setItem('ecoweave_dashboard_alerts', JSON.stringify(alerts))
 ```
 
 ### Marketing Routes (with Navbar)
+
 ```
 /                   → Landing page
 /about              → About page
@@ -431,10 +477,10 @@ localStorage.setItem('ecoweave_dashboard_alerts', JSON.stringify(alerts))
 
 ## 🔐 Security & Privacy
 
-- **No Backend**: All data stored locally in browser
-- **No Authentication**: Demo mode, no login required
-- **No Data Transmission**: Data never leaves user's browser
-- **Privacy First**: No tracking, analytics, or cookies
+- **Authenticated API access**: protected endpoints use JWT bearer tokens
+- **Backend mode**: uploaded CSV and derived analytics are persisted server-side
+- **Fallback mode**: if backend is unavailable, processing remains local in browser
+- **Frontend app**: no tracking analytics included in this project by default
 
 ---
 
@@ -450,19 +496,19 @@ localStorage.setItem('ecoweave_dashboard_alerts', JSON.stringify(alerts))
 ## 🔄 Data Flow
 
 ```
-1. CSV Upload / Sample Data Load
+1. CSV selected on Data Upload page
+  ↓
+2. Health check backend
+  ↓
+3a. Backend online:
+   upload to /api/csv-upload/upload → backend scoring + persistence
    ↓
-2. Parse CSV → BatchRecord[]
+   dashboard fetches /api/batches, /api/batches/stats, /api/alerts
+
+3b. Backend offline:
+   local parse + validate + score
    ↓
-3. Validate Batches → ValidationFlag[]
-   ↓
-4. Score Batches → ScoredBatch[]
-   ↓
-5. Generate Alerts → Alert[]
-   ↓
-6. Save to localStorage
-   ↓
-7. Render Dashboard / Charts
+   fallback data saved to localStorage
 ```
 
 ---
@@ -485,11 +531,16 @@ interface BatchRecord {
 
 interface ValidationFlag {
   batch_id: string;
-  type: 'missing_field' | 'invalid_value' | 'triangulation_mismatch' | 
-        'power_anomaly' | 'treatment_inconsistency' | 
-        'invoice_mismatch' | 'probable_bypass';
+  type:
+    | "missing_field"
+    | "invalid_value"
+    | "triangulation_mismatch"
+    | "power_anomaly"
+    | "treatment_inconsistency"
+    | "invoice_mismatch"
+    | "probable_bypass";
   message: string;
-  severity: 'low' | 'medium' | 'high';
+  severity: "low" | "medium" | "high";
 }
 
 interface ScoredBatch extends BatchRecord {
@@ -506,7 +557,7 @@ interface Alert {
   etp_cost_bdt: number;
   recommendation: string;
   flags: ValidationFlag[];
-  status: 'pending' | 'acknowledged' | 'resolved';
+  status: "pending" | "acknowledged" | "resolved";
   createdAt: string;
 }
 ```
@@ -516,7 +567,7 @@ interface Alert {
 ## 🚧 Future Enhancements
 
 ### Planned Features
-- [ ] Backend API integration
+
 - [ ] User authentication & multi-tenancy
 - [ ] Real-time data streaming
 - [ ] IoT sensor integration
@@ -528,6 +579,7 @@ interface Alert {
 - [ ] Audit log tracking
 
 ### Scalability
+
 - [ ] PostgreSQL/MongoDB database
 - [ ] Redis caching layer
 - [ ] WebSocket for real-time updates
@@ -539,9 +591,10 @@ interface Alert {
 
 ## 🤝 Contributing
 
-This is a demo project for **GenMorphix EcoWeave**. 
+This is a demo project for **GenMorphix EcoWeave**.
 
 ### Development Guidelines
+
 1. Follow TypeScript strict mode
 2. Use Tailwind utility classes
 3. Maintain responsive design
@@ -561,13 +614,14 @@ Proprietary - GenMorphix © 2026
 
 **Project**: EcoWeave Compliance Monitoring Dashboard  
 **Organization**: GenMorphix  
-**Category**: Environmental Technology / Textile Manufacturing  
+**Category**: Environmental Technology / Textile Manufacturing
 
 ---
 
 ## 📞 Support
 
 For questions or support regarding EcoWeave:
+
 - Visit our website
 - Contact via the contact page
 - Review the sample report for demo
@@ -577,6 +631,7 @@ For questions or support regarding EcoWeave:
 ## 🎓 Learning Resources
 
 ### Technologies Used
+
 - [Next.js Documentation](https://nextjs.org/docs)
 - [TypeScript Handbook](https://www.typescriptlang.org/docs/)
 - [Tailwind CSS](https://tailwindcss.com/docs)
@@ -584,6 +639,7 @@ For questions or support regarding EcoWeave:
 - [Lucide Icons](https://lucide.dev/)
 
 ### Concepts Demonstrated
+
 - **Data Triangulation**: Cross-validation using multiple metrics
 - **Risk Scoring**: Multi-factor heuristic algorithms
 - **Anomaly Detection**: Pattern recognition in operational data
